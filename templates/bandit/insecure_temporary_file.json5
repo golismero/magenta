@@ -1,0 +1,15 @@
+{
+    title: "Insecure Temporary File",
+
+    summary: "Creating temporary files with predictable paths leaves them open to time of check, time of use attacks (TOCTOU). {% if code|length == 1 %}An instance of such behavior was{% else %}Multiple instances of such behavior were{% endif %} detected in the source code.",
+
+    description: "{% include 'summary' %}\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Safely creating a temporary file or directory means following a number of rules. See the **References** below for more details.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://security.openstack.org/guidelines/dg_using-temporary-files-securely.html",
+    ],
+}

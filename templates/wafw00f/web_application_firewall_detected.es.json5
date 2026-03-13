@@ -1,0 +1,20 @@
+{
+    title: "Firewall de Aplicaciones Web (WAF) Detectado",
+
+    summary: "Se detectó la presencia de un firewall de aplicaciones web (WAF) en {% if firewalls|length == 1 %}una URL analizada{% else %}múltiples URLs analizadas{% endif %}.",
+
+    description: "",
+
+    recommendations: "Aunque se recomienda encarecidamente el uso de un WAF, al realizar una prueba de seguridad es mejor encontrar una manera de dar acceso directo a los sistemas durante la ventana de prueba, por fuera de la protección del WAF. El método habitual es agregar una dirección IP fija a la lista blanca del WAF y luego asegurarse de que todas las pruebas se realicen utilizando esa dirección.\n\nEl problema de activar un WAF durante una prueba de seguridad es que, cuando se realiza un test para una vulnerabilidad en concreto, resulta más difícil determinar si la aplicacion no es vulnerable, o si lo es pero los síntomas están ocultos por la presencia del WAF.",
+
+    details: "{% if firewalls|length == 1 %}{% if firewalls[affects[0]]|length == 1 %}Se ha detectado el firewall de aplicaciones web {{ firewalls[affects[0]][0].manufacturer }} {{ firewalls[affects[0]][0].firewall }} en la siguiente URL: {{ affects[0] }}.{% else %}Uno de los siguientes WAF está siendo utilizado en la URL: {{ affects[0] }}\n{% for x in firewalls[affects[0]] %}* {{ x.manufacturer }} {{ x.firewall }}\n{% endfor %}\n{% endif %}{% else %}Se detectó la presencia de un firewall de aplicaciones web (WAF) en las siguientes URLs:\n\n{% for url in affects %}**{{ url }}**\n{% if firewalls[url]|length == 1 %}{{ firewalls[url][0].manufacturer }} {{ firewalls[url][0].firewall }} fue detectado.\n\n{% else %}Los siguientes WAFs posiblemente estén siendo utilizados:\n{% for x in firewalls[url] %}* {{ x.manufacturer }} {{ x.firewall }}\n{% endfor %}\n{% endif %}{% endfor %}{% endif %}",
+
+    references: [
+        "https://docs.aws.amazon.com/es_es/waf/latest/developerguide/classic-web-acl-ip-conditions.html",
+        "https://docs.aws.amazon.com/es_es/waf/latest/developerguide/waf-ip-set-creating.html",
+        "https://es.wikipedia.org/wiki/Web_application_firewall",
+        "https://learn-microsoft-com.translate.goog/en-us/answers/questions/1179573/how-to-define-ip-whitelist-in-azure-application-ga?_x_tr_sl=auto&_x_tr_tl=es&_x_tr_hl=en&_x_tr_pto=wapp",
+        "https://support.huaweicloud.com/intl/es-us/waf_faq/waf_01_0095.html",
+        "https://www.cloudflare.com/es-es/learning/ddos/glossary/web-application-firewall-waf/",
+    ],
+}

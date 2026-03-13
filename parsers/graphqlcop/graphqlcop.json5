@@ -1,0 +1,8 @@
+{
+    url: "https://github.com/dolevf/graphql-cop",
+    description: {
+        en: "GraphQL Cop is a small Python utility to run common security tests against GraphQL APIs. GraphQL Cop is perfect for running CI/CD checks in GraphQL. It is lightweight, and covers interesting security issues in GraphQL.",
+        es: "GraphQL Cop es una pequeña utilidad de Python para ejecutar pruebas de seguridad comunes en las API de GraphQL. GraphQL Cop es perfecto para ejecutar comprobaciones de CI/CD en GraphQL. Es liviano y cubre temas de seguridad interesantes en GraphQL."
+    },
+    status: "development"
+}

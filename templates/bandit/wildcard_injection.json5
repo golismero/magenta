@@ -1,0 +1,16 @@
+{
+    title: "Wildcard Injection",
+
+    summary: "{% if code|length %}A Linux command line invocation using wildcard characters was detected in the source code.{% else %}A number of Linux command line invocations using wildcard characters were detected in the source code.{% endif %}",
+
+    description: "{% include 'summary' %}Standard Linux command line utilities may take a wildcard '\\*' character in place of a file system path. This is interpreted to mean **any and all files or folders** and can be used to build partially qualified paths, such as '/home/user/\*'.\n\nThe use of partially qualified paths may result in unintended consequences if an unexpected file or symlink is placed into the path location given. This becomes particularly dangerous when combined with commands used to manipulate file permissions or copy data off of a system.\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Avoid the use of wildcard characters whenever possible, opting instead for explicitly adding code to select or search for the relevant files.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://en.wikipedia.org/wiki/Wildcard_character",
+        "https://www.defensecode.com/public/DefenseCode_Unix_WildCards_Gone_Wild.txt",
+    ],
+}

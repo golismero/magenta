@@ -1,0 +1,9 @@
+{
+    name: "Bearer",
+    url: "https://github.com/Bearer/bearer",
+    description: {
+        en: "Bearer CLI is a static application security testing (SAST) tool that scans your source code and analyzes your data flows to discover, filter and prioritize security and privacy risks.",
+        es: "Bearer CLI es una herramienta de prueba de seguridad de aplicaciones estáticas (en inglés, SAST) que escanea su código fuente y analiza sus flujos de datos para descubrir, filtrar y priorizar riesgos de seguridad y privacidad.",
+    },
+    status: "production"
+}

@@ -1,0 +1,23 @@
+{
+    // Tool name for humans.
+    name: "Nmap",
+
+    // URL to the tool.
+    url: "https://nmap.org/",
+
+    // Tool description for humans, translate to each supported language.
+    description: {
+        en: "Nmap is a free and open source utility for network discovery and security auditing.",
+        es: "Nmap es una utilidad gratuita y de código abierto para el descubrimiento de redes y la auditoría de seguridad.",
+    },
+
+    // Development status. Supported values are:
+    //   production: Parser is production ready.
+    //   testing: Parser is finished, but still under testing. Results may be unreliable.
+    //   development: Parser is still under development, results will almost certainly be unreliable.
+    status: "production",
+
+    // Set to true to avoid listing this tool as one of the tools used in the pentest.
+    // Useful for tools that are not pentesting tools per se, such as reporting or management tools.
+    hidden: false
+}

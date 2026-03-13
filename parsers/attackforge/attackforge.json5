@@ -1,0 +1,10 @@
+{
+    name: "AttackForge",
+    url: "https://www.attackforge.com/",
+    description: {
+        en: "AttackForge helps you manage your penetration testing programs, and deliver large-scale pentesting services.",
+        es: "AttackForge ayuda a gestionar sus programas de pentesting y a ofrecer servicios de pentesting a gran escala.",
+    },
+    status: "testing",
+    hidden: true
+}

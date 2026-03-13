@@ -1,0 +1,18 @@
+{
+    title: "Fichero Robots.txt",
+
+    summary: "{% if issues|length > 1 %}Se han encontrado ficheros *robots.txt*{% else %}Se ha encontrado un fichero *robots.txt*{% endif %}, los cuales {% if severity != 'none' %}contenían información sensible{% else %}requieren una revisión manual{% endif %}.",
+
+    description: "El fichero *robots.txt* es un mecanismo para que las aplicaciones web excluyan determinadas páginas del rastreo automatizado, como el que realizan los motores de búsqueda al indexar un sitio web. Si bien es útil, este mecanismo puede exponer inadvertidamente páginas que debían estar ocultas a la vista del público, lo que podría revelar secretos.",
+
+    recommendations: "{% if severity != 'none' %}Se recomienda eliminar cualquier información confidencial del fichero *robots.txt*, ya que todo lo escrito allí debe considerarse público y trivial de descubrir.{% endif %}",
+
+    details: "{% if issues|length == 1 %}{% if issues[0].response is defined %}El siguiente fichero *robots.txt* se ha encontrado en {{ issues[0].host }}:\n\n***HTTP Response:***\n{{ issues[0].response|b64decode|http2md(full=True) }}{% else %}Un fichero *robots.txt* se ha encontrado en {{ issues[0].host }}.{% endif %}{% else %}Los siguientes ficheros *robots.txt* se han encontrado en:\n\n{% for x in issues %}*{{ x.host }}:*\n\n{% if x.response is defined %}***Respuesta HTTP:***\n{{ x.response|b64decode|http2md(full=True) }}\n{% else %}*(Contenido no disponible)\n*{% endif %}{% endfor %}{% endif %}",
+
+    taxonomy: ["CWE-200"],
+
+    references: [
+        "https://developers.google.com/search/docs/crawling-indexing/robots/intro?hl=es",
+        "https://portswigger.net/kb/issues/00600600_robots-txt-file",
+    ],
+}

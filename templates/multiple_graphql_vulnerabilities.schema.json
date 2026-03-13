@@ -1,0 +1,33 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "properties": {
+        "issues": {
+            "type": "array",
+            "properties": {
+                "cause": {
+                    "enum": [
+                        "alias_overloading",
+                        "batch_queries",
+                        "get_based_queries",
+                        "post_based_queries",
+                        "trace",
+                        "field_duplication",
+                        "field_suggestions",
+                        "ide",
+                        "introspection",
+                        "directives_overloading",
+                        "circular_query",
+                        "mutation_over_get",
+                        "unhandled_errors"
+                    ]
+                },
+                "consequence": {"enum": ["dos", "csrf", "infoleak"]},
+                "severity": {"enum": ["none", "low", "medium", "high", "critical"]},
+                "url": {"type": "string", "pattern": "^https?://"},
+                "command": {"type": "string", "pattern": "^curl "}
+            }
+        }
+    },
+    "required": ["issues"]
+}

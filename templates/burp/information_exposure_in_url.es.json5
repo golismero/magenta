@@ -1,0 +1,17 @@
+{
+    title: "Exposición de información sensible en URL",
+
+    summary: "Durante la prueba de seguridad se descubrió información {% if severity in ('low', 'none') %}potencialmente {% endif %}confidencial en las URLs. La información enviada en las URLs puede ser interceptada por servidores proxy intermedios, almacenada en el historial del navegador web o compartida inadvertidamente por los usuarios.",
+
+    description: "Cuando una aplicación web envía información al servidor mediante una solicitud GET, los datos no se transmiten en el cuerpo de la solicitud como sucedería con otros métodos, sino en la propia URL. Esto puede exponer la información en varios escenarios específicos, ya que en general las URL no se consideran secretas; ejemplos de tales escenarios incluyen usuarios que comparten enlaces, navegadores web que almacenan las URL en su caché e historial, registros de proxy inverso y registros del servidor web que almacenan enlaces visitados, solicitudes HTTP de terceros en el encabezado *Referer*, etc.\n\n",
+
+    recommendations: "{% if severity in ('low', 'none') %}Revise la información enviada a través de solicitudes GET para asegurarse de que nada de ella pueda considerarse de naturaleza confidencial. En cualquier caso, considere cambiar a solicitudes POST o PUT siempre que sea necesario enviar información al servidor.{% else %}No envíe información confidencial a través de solicitudes GET bajo ninguna circunstancia. En su lugar, utilice otros verbos HTTP como POST y PUT para enviar esta información al servidor.{% endif %} Alternativamente, también se pueden utilizar cookies seguras para este fin.",
+
+    details: "Se descubrió que las siguientes URL contienen información {% if severity in ('low', 'none') %}potencialmente {% endif %}confidencial:\n\n{% for x in issues %}{% for y in x.details %}* {{ y }}\n{% endfor %}{% endfor %}",
+
+    taxonomy: ["CWE-598"],
+    references: [
+        "https://owasp-org.translate.goog/www-community/vulnerabilities/Information_exposure_through_query_strings_in_url?_x_tr_sl=en&_x_tr_tl=es&_x_tr_hl=en&_x_tr_pto=wapp",
+        "https://codeql-github-com.translate.goog/codeql-query-help/javascript/js-sensitive-get-query/?_x_tr_sl=en&_x_tr_tl=es&_x_tr_hl=en&_x_tr_pto=wapp",
+    ],
+}

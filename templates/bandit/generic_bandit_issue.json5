@@ -1,0 +1,11 @@
+{
+    title: "Unspecified Issue Found in Source Code",
+
+    summary: "An unspecified security issue was found in the source code and requires manual review.",
+
+    description: "{% include 'summary' %}",
+
+    recommendations: "",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+}

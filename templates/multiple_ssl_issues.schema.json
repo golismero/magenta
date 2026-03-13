@@ -1,0 +1,46 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "properties": {
+        "hosts": {
+            "type": "array",
+            "properties": {
+                "host": {"type": "string"},
+                "bad_ciphers": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "cipher": {"type": "string"},
+                            "version": {"type": "string"},
+                            "openssl_id": {"type": "string", "pattern":"x.+"},
+                            "cipher_bits": {"type": "integer"},
+                            "hash_bits": {"type": "integer"},
+                            "severity": {"enum": ["low", "medium", "high", "critical"]},
+                            "status": {"enum": ["accepted", "preferred"]}
+                        },
+                        "required": ["cipher", "version", "severity", "status"]
+                    }
+                },
+                "grade": {"enum": ["A+", "A", "B", "C", "D", "E", "F", "T"]},
+                "grade_cap": {"type": "array", "items": {"type": "string"}},
+                "rating_spec": {"type": "string"},
+                "problems": {"type": "object", "additionalProperties": {"type": "string"}},
+                "clientsimulations": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "client": {"type": "string"},
+                            "cipher": {"type": "string"},
+                            "version": {"type": "string"},
+                            "status": {"enum": ["accepted", "preferred", "no-connection"]}
+                        },
+                        "required": ["client", "status"]
+                    }
+                }
+            }
+        }
+    },
+    "required": ["hosts"]
+}

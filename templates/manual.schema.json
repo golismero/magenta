@@ -1,0 +1,14 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "properties": {
+        "title": {"type": "string"},
+        "summary": {"type": "string", "pattern": "^[^\\r\\n]*$"},
+        "description": {"type": "string"},
+        "recommendations": {"type": "string"},
+        "details": {"type": "string"},
+        "references": {"type": "array", "items": {"type": "string", "pattern": "^https?://"}},
+        "taxonomy": {"type": "array", "items": {"type": "string", "minLength": 3}}
+    },
+    "required": ["title", "summary", "description", "recommendations", "details"]
+}

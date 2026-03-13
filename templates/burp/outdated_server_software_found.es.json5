@@ -1,0 +1,13 @@
+{
+    title: "Server{% if affects|length > 1 %}s{% endif %} con Software Desactualizado",
+
+    summary: "Se descubrió que se estaba utilizando software desactualizado{% if affected|length > 1 %} en múltiples servidores{% endif %}. {% if severity == 'none' %}Si bien no se identificaron vulnerabilidades conocidas públicamente, aún es posible que existan vulnerabilidades desconocidas en software sin parches.{% else %}Las versiones de software identificadas están afectadas por vulnerabilidades conocidas públicamente.{% endif %}",
+
+    description: "{% include 'summary' %}",
+
+    recommendations: "{% if severity != 'none' %}Se recomienda actualizar {% if severity == 'critical' %}inmediatamente{% else %}lo antes posible{% endif %} {% if affects|length > 1 %}los servidores afectados{% else %}el servidor afectado{% endif %} para estar al día con los últimos parches de seguridad.\n\n{% endif %}{% if severity != 'none' %}En general, incluso cuando{% else %}A pesar de que en este caso{% endif %} no se conocen vulnerabilidades públicamente conocidas, mantener versiones de software desactualizadas puede aumentar las probabilidades de que se encuentre y explote una vulnerabilidad. Además, no todas las vulnerabilidades corregidas por una nueva versión se divulgan públicamente.\n\nPor lo tanto, se recomienda {% if severity != 'none' %}también {% endif %}implementar un mecanismo robusto de actualizaciones de sofware en todos los servidores, que priorice mantenerse siempre al día con la última versión. Esto mantendría dichas aplicaciones más seguras y eliminaría la necesidad de monitorizar las vulnerabilidades públicas para decidir cuándo aplicar parches.",
+
+    details: "Se encontró el siguiente software desactualizado:\n\n{% for x in issues %}***{% if x.path is defined %}{{ x.host + x.path }}{% else %}{{ x.host }}{% endif %}***:\n\n{% for y in x.vulnerabilities %}Se detectó la versión **{{ y.version }}** de **{{ y.software }}**.\n{% if y.taxonomy is defined %}\nPuede contener las siguientes vulnerabilidades conocidas públicamente\n\n{% for z in y.taxonomy %}* {{ z }}\n{% endfor %}\n{% endif %}{% if y.exploits is defined %}Los siguientes exploits listos para usar se pueden encontrar en internet:\n\n{% for z in y.exploits %}* {{ z }}\n{% endfor %}\n{% endif %}{% if y.patches is defined %}Los siguientes parches de seguridad están disponibles para actualizar el software afectado:\n\n{% for z in y.patches %}* {{ z }}\n{% endfor %}\n{% endif %}{% endfor %}\n{% endfor %}",
+
+    taxonomy: ["CWE-1104"],
+}

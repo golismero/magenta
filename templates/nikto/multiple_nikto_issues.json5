@@ -1,0 +1,8 @@
+{
+    title: "{% if issues|length == 1 %}Issue{% else %}Multiple Issues{% endif %} Discovered by Nikto",
+    summary: "{% if issues|length == 1 %}An issue was{% else %}Multiple issues were{% endif %} detected using `nikto.pl` on {% if assets|length == 1 %}a single asset{% else %}multiple assets{% endif %} in scope.",
+    description: "{% include 'summary' %}",
+    recommendations: "Nikto discoveries are rare, and often false positives, in modern systems. They are, however, accurate and grave for older, unmaintained systems. The solution therefore depends heavily on context, and there are no general recommendations for this issue. Manual review of each item listed in the {% include '/main/details' %} section is needed.",
+    details: "The following are the results of the `nikto.pl` analysis:\n\n{% for key, value in issues.items() %}***Host: {{key}}***\n| Path | CVE | Problem |\n| --- | --- | --- |\n{% for v in value %}| {{v.path}} | {{v.cve|join(', ')}} | {{v.msg}} |\n{% endfor %}\n\n{% endfor %}",
+    references: ["https://github.com/sullo/nikto"],
+}

@@ -1,0 +1,11 @@
+{
+    title: "Process Launch with Partial Path",
+
+    summary: "Python possesses many mechanisms to invoke an external executable. If the desired executable path is not fully qualified relative to the filesystem root then this may present a potential security risk.",
+
+    description: "{% include 'summary' %}\n\nIn POSIX environments, the `PATH` environment variable is used to specify a set of standard locations that will be searched for the first matching named executable. While convenient, this behavior may allow a malicious actor to exert control over a system. If they are able to adjust the contents of the `PATH` variable, or manipulate the file system, then a bogus executable may be discovered in place of the desired one. This executable will be invoked with the user privileges of the Python process that spawned it, potentially a highly privileged user.\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Ensure subprocesses are launched using only a fully qualified path to the corresponding binary. In cases where this may not be possible or convenient, consider using configuration settings to specify the fully qualified paths to the binaries intead of relying on the `PATH` environment variable.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+}

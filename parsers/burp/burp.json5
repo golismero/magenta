@@ -1,0 +1,9 @@
+{
+    name: "Burp Suite Pro",
+    url: "https://portswigger.net/burp/pro",
+    description: {
+        en: "Burp Suite Pro is a software security application used for penetration testing of web applications. Both a free and a paid version of the software are available. The suite includes tools such as a proxy server (Burp Proxy), an indexing robot (Burp Spider), an intrusion tool (Burp Intruder), a vulnerability scanner (Burp Scanner) and an HTTP repeater (Burp Repeater).",
+        es: "Burp Suite Pro es una aplicación de seguridad de software que se utiliza para pruebas de penetración de aplicaciones web. Hay disponibles una versión gratuita y una de pago del software. La suite incluye herramientas como un servidor proxy (Burp Proxy), un robot de indexación (Burp Spider), una herramienta de intrusión (Burp Intruder), un escáner de vulnerabilidades (Burp Scanner) y un repetidor HTTP (Burp Repeater).",
+    },
+    status: "development"
+}

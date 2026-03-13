@@ -1,0 +1,38 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "properties": {
+        "issues": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "host": {"type": "string"},
+                    "path": {"type": "string"},
+                    "location": {"type": "string"},
+                    "request": {"type": "string"},
+                    "response": {"type": "string"},
+                    "method": {"type": "string"},
+                    "redirected": {"type": "boolean"},
+                    "vulnerabilities": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "software": {"type": "string"},
+                                "version": {"type": "string"},
+                                "fixed": {"type": "string"},
+                                "taxonomy": {"type": "array", "items": {"type": "string"}},
+                                "exploits": {"type": "array", "items": {"type": "string"}},
+                                "patches": {"type": "array", "items": {"type": "string"}}
+                            },
+                            "required": ["software", "version"]
+                        }
+                    }
+                },
+                "required": ["host"]
+            }
+        }
+    },
+    "required": ["issues"]
+}

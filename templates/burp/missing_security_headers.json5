@@ -1,0 +1,23 @@
+{
+    title: "Missing Security Headers",
+
+    summary: "{% if affects|length > 1 %}Some web servers were{% else %}A web server was{% endif %} found to be returning HTTP responses without some important security headers. Using security related HTTP headers can improve the security posture of a web server.",
+
+    // TBD there should be an explanation of all the HTTP headers here, but only the relevant ones,
+    //     this can be done by scanning the 'items' array and looking for each header in it
+    description: "{% include 'summary' %}",
+
+    // TBD there should be an recommendation for each relevant HTTP headers here, instead of just
+    // pointing readers to veggiespam (as much as I love that page, we can't just rely on it)
+    recommendations: "Include as many security headers as possible for your web application. Some are straightforward to add, while others may require more careful consideration, since their exact configuration may be dependant on the use cases of the application, among other factors. A good resource explaining each header and all necessary considerations (veggiespam.com) can be found in the **References** section below.",
+
+    details: "{% for x in issues %}***{{ x.host + x.path }}***\n\nThe following HTTP headers were either missing or misconfigured:\n\n{% for y in x.details %}* {{ y }}\n{% endfor %}\n{% if x.response is defined %}The following HTTP {% if x.request is defined %}dialog{% else %}response{% endif %} illustrates the issue:\n\n{% if x.request is defined %}**HTTP Request:**\n\n{{ x.request|b64decode|http2md }}\n{% endif %}**HTTP Response Headers:**\n\n{{ x.response|b64decode|http2md(headersonly=True) }}\n{% endif %}{% endfor %}",
+
+    taxonomy: ["CWE-693"],
+
+    // TBD add more references here
+    references: [
+        "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html",
+        "https://www.veggiespam.com/good-headers/",
+    ],
+}

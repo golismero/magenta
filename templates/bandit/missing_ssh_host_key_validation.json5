@@ -1,0 +1,15 @@
+{
+    title: "Missing SSH Host Key Validation",
+
+    summary: "The application was detected connecting to SSH servers without validating the host key of the server. This can expose the application to man-in-the-middle attacks.",
+
+    description: "{% include 'summary' %}\n\nEncryption in general is typically critical to the security of many applications.  Using SSH can greatly increase security by guaranteeing the identity of the party you are communicating with.  This is accomplished by one or both parties presenting trusted host keys during the connection initialization phase of SSH.\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Always validate the SSH server host key when connecting. When paramiko methods are used, host keys are verified by default - if the validation has been disabled intentionally, evaluate the need for this behavior and consider more secure alternatives.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://codeql.github.com/codeql-query-help/python/py-paramiko-missing-host-key-validation/",
+    ],
+}

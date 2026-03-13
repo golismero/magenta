@@ -1,0 +1,16 @@
+**/*.pyc
+**/.gitignore
+**/__pycache__
+**/generator
+**/generator.py
+**/generator.sh
+*.pyc
+.DS_Store
+.dockerignore
+.git
+.gitignore
+.magenta.cache
+Dockerfile
+README.md
+samples
+test

@@ -1,0 +1,16 @@
+{
+    title: "Use of Paramiko's `exec_command` Method Detected",
+
+    summary: "The use of Paramiko's `exec_command` method was detected in the source code. If invoked with unsanitized user input, this may result in arbitrary code execution.",
+
+    description: "Paramiko is a Python library designed to work with the SSH2 protocol for secure (encrypted and authenticated) connections to remote machines. It is intended to run commands on a remote host. These commands are run within a shell on the target and are thus vulnerable to various shell injection attacks.\n\n{% include 'summary' %}\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Ensure all invocations of Paramiko's `exec_command` method either do not contain any user input, or the user input has been properly sanitized.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://github.com/paramiko/paramiko",
+        "https://www.owasp.org/index.php/Command_Injection",
+    ],
+}

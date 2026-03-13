@@ -1,0 +1,9 @@
+babel
+click
+click-default-group
+jinja2>=3.0
+json5
+jsonschema
+matplotlib
+pygments
+rich

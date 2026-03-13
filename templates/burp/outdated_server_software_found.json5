@@ -1,0 +1,13 @@
+{
+    title: "Outdated Server Software Found",
+
+    summary: "Outdated software was found to be in use{% if affected|length > 1 %} in multiple hosts{% endif %}. {% if severity == 'none' %}While no publicly known vulnerabilities were identified, it is still possible for unknown vulnerabiliies to be present in unpatched software.{% else %}The identified software versions were found to be affected by publicly known vulnerabilities.{% endif %}",
+
+    description: "{% include 'summary' %}",
+
+    recommendations: "{% if severity != 'none' %}{% if severity == 'critical' %}Immediately patch the affected hosts{% else %}Patch the affected hosts whenever possible,{% endif %} to stay up to date with the latest security patches.\n\nIn general, even{% else %}Even{% endif %} when no publicly known vulnerabilities are known for them, keeping outdated software versions may increase the chances of a vulnerability in them being found and exploited. Additionally, not all vulnerabilities patched by a new version are fully disclosed.\n\nIt is therefore {% if severity != 'none' %}also {% endif %}recommended to implement a robust patching mechanism for all servers that prioritizes always keeping up with the latest verion. Doing so would both keep said applications more secure and eliminate the need to track public vulnerabilities in order to decide when to patch.",
+
+    details: "The following outdated software was found:\n\n{% for x in issues %}***{% if x.path is defined %}{{ x.host + x.path }}{% else %}{{ x.host }}{% endif %}***:\n\n{% for y in x.vulnerabilities %}Version **{{ y.version }}** of **{{ y.software }}** was detected.\n{% if y.taxonomy is defined %}\nIt may contain the following unpatched publicly known vulnerabilities:\n\n{% for z in y.taxonomy %}* {{ z }}\n{% endfor %}\n{% endif %}{% if y.exploits is defined %}The following ready to use exploits can be found online:\n\n{% for z in y.exploits %}* {{ z }}\n{% endfor %}\n{% endif %}{% if y.patches is defined %}The following patches can be applied to fix the issues:\n\n{% for z in y.patches %}* {{ z }}\n{% endfor %}\n{% endif %}{% endfor %}\n{% endfor %}",
+
+    taxonomy: ["CWE-1104"],
+}

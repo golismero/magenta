@@ -1,0 +1,11 @@
+{
+    title: "Use of `pass` Statement Inside `except` Block",
+
+    summary: "{% if code|length == 1 %}A `continue` statement was found inside an `except` block in the source code.{% else %}Multiple `continue` statements were found inside an `except` block in the source code.{% endif %} This may potentially be hiding exceptions and thus inadvertently cause logic errors in the application.",
+
+    description: "{% include 'summary' %}\n\nErrors in Python code bases are typically communicated using ``Exceptions``. An exception object is 'raised' in the event of an error and can be 'caught' at a later point in the program, typically some error handling or logging action will then be performed.\n\nHowever, it is possible to catch an exception and silently ignore it while in a loop. This is illustrated with the following example:\n\n```\nwhile keep_going:\n    try:\n    do_some_stuff()\n    except Exception:\n    continue\n```\n\nThis pattern is considered bad practice in general, but also represents a potential security issue. A larger than normal volume of errors from a service can indicate an attempt is being made to disrupt or interfere with it. Thus errors should, at the very least, be logged.\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Avoid this particular coding pattern whenever possible. There are rare situations where it is desirable to suppress errors, but this is typically done with specific exception types, rather than the base Exception class (or no type).",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+}

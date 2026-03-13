@@ -1,0 +1,10 @@
+{
+    name: "Magenta Reporter",
+    url: "https://github.com/mariovilas/magenta",
+    description: {
+        en: "This allows importing vulnerabilities from other Magenta reports.",
+        es: "Esto permite importar vulnerabilidades de otros informes de Magenta.",
+    },
+    status: "production",
+    hidden: true
+}

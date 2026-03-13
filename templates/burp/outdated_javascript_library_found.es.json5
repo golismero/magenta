@@ -1,0 +1,13 @@
+{
+    title: "{% if issues|length == 1 %}Librería de JavaScript Desactualizada{% else %}Librerías de JavaScript Desactualizadas{% endif %}",
+
+    summary: "{% if issues|length == 1 %}Se descubrió que se estaba utilizando una biblioteca de JavaScript desactualizada.{% else %}Se encontró que se estaban utilizando varias aplicaciones de JavaScript desactualizadas.{% endif %} Las bibliotecas desactualizadas pueden contener vulnerabilidades conocidas públicamente que, si son aplicables a la aplicación web afectada, pueden comprometer su seguridad.",
+
+    description: "{% include 'summary' %}",
+
+    recommendations: "Incluso cuando no se conocen vulnerabilidades públicamente conocidas, mantener versiones desactualizadas de las dependencias de JavaScript puede aumentar las posibilidades de que se encuentre y explote una vulnerabilidad en ellas. Además, no todas las vulnerabilidades remediadas por una nueva versión se divulgan por completo.\n\nPor lo tanto, se recomienda implementar un mecanismo de parches de seguridad sólido en el ciclo de vida de desarrollo de las aplicaciones web que priorice mantenerse siempre al día con la última versión. Esto mantendría dichas aplicaciones más seguras y eliminaría la necesidad de rastrear las vulnerabilidades públicas para decidir cuándo aplicar parches de seguridad.",
+
+    details: "Se encontraron las siguientes dependencias de JavaScript desactualizadas:\n\n{% for x in issues %}***{{ x.host + x.path }}***:\n\n{% for y in x.details %}* Versión {{ y }}\n{% endfor %}\n{% endfor %}",
+
+    taxonomy: ["CWE-1104"],
+}

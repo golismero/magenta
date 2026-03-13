@@ -1,0 +1,9 @@
+{
+    name: "SSLScan",
+    url: "https://github.com/rbsec/sslscan",
+    description: {
+        en: "SSLScan tests SSL/TLS enabled services to discover supported cipher suites.",
+        es: "SSLScan testea servicios que tengan habilitado SSL/TLS para descubrir qué cifrados soportan.",
+    },
+    status: "production"
+}

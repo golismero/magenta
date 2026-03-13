@@ -1,0 +1,16 @@
+{
+    title: "Use of `tarfile.extractall` Function",
+
+    summary: "The use of the `tarfile.extractall` was found to be used in an insecure manner in the source code. This may expose the application to security risks if the tarfiles being extracted are provided by the user, as it would be possible to exploit this behavior to overwrite arbitrary files in the target system.",
+
+    description: "{% include 'summary' %}\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Use `tarfile.extractall(members=function_name)` and define a function that will inspect each member. Discard files that contain a directory traversal sequences such as `../` or `\..` along with all special filetypes unless you explicitly need them.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://docs.python.org/3/library/tarfile.html#tarfile.TarFile.extractall",
+        "https://docs.python.org/3/library/tarfile.html#tarfile.TarInfo",
+    ],
+}

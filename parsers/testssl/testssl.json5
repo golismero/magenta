@@ -1,0 +1,9 @@
+{
+    name: "testssl.sh",
+    url: "https://testssl.sh/",
+    description: {
+        en: "testssl.sh is a free command line tool which checks a server's service on any port for the support of TLS/SSL ciphers, protocols as well as recent cryptographic flaws and more.",
+        es: "testssl.sh es una herramienta de línea de comandos gratuita que verifica el servicio de un servidor en cualquier puerto para verificar si admite cifrados TLS/SSL, protocolos, así como fallas criptográficas recientes y más.",
+    },
+    status: "testing"
+}

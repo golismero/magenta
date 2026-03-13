@@ -1,0 +1,16 @@
+{
+    title: "Página{% if affects|length > 1 %}s{% endif %} de contenido mixto detectada{% if affects|length > 1 %}s{% endif %}",
+
+    summary: "Se {% if affects|length == 1 %}descubrió una página web que tenía{% else %}descubrieron múltiples páginas web que tenían{% endif %} contenido HTTP y HTTPS mixto. Esto puede resultar en un compromiso del navegador web del usuario en un escenario de *man-in-the-middle*.",
+
+    description: "Las páginas de contenido mixto son páginas web que obtienen parte de su contenido de enlaces HTTPS seguros y enlaces HTTP inseguros y no cifrados. Esto se hacía a menudo en sistemas heredados debido a los costos prohibitivos, en aquella época, de cifrar el tráfico de red utilizando hardware de finales de los 90 y principios de los 2000.\n\nA primera vista, esto puede no parecer un gran problema cuando los datos sin cifrar no contienen información confidencial. Sin embargo, existe un riesgo de seguridad intrínseco en esta práctica; en un escenario de *man-in-the-middle* (es decir, un atacante ubicado estratégicamente en la red con la capacidad de interceptar el tráfico de la red) podría modificar el contenido no cifrado para inyectar código malicioso y así comprometer el navegador web de los usuarios.\n\nAdemás, es probable que las páginas de contenido mixto generen advertencias de seguridad en los navegadores web modernos, lo que puede causar fricción en la experiencia de usuario.",
+
+    recommendations: "Se recomienda publicar siempre la totalidad del contenido web a través de enlaces HTTPS cifrados. No existe un caso de uso realista para el contenido no cifrado en el ecosistema web actual, ya que el tráfico cifrado ya no es difícil de manejar para el hardware moderno.",
+
+    // XXX FIXME this could use some love
+    details: "{% if affects|length == 1 %}Se encontró que los siguientes recursos se cargaron a través de enlaces HTTP sin cifrar en {{ affects[0] }}:\n\n{% for x in issues[0].details %}* {{ x }}\n{% endfor %}{% else %}{% for x in issues %}***{{ x.host + x.path }}***:\n\nSe encontró que los siguientes recursos se cargaron a través de enlaces HTTP sin cifrar:\n\n{% for y in x.details %}* {{ y }}\n{% endfor %}{% endfor %}{% endif %}",
+
+    taxonomy: [],
+
+    references: ["https://www.cloudflare.com/es-es/learning/ssl/what-is-mixed-content/"],
+}

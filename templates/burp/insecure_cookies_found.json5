@@ -1,0 +1,27 @@
+{
+    title: "Insecure Cookie{% if issues|length > 1 %}s{% endif %} Found",
+
+    summary: "{% if issues|length > 1 %}Some cookies were{% else %}A cookie was{% endif %} found to be missing security attributes. Using cookies without the proper security attributes can be detrimental to the security posture of a web application.",
+
+    description: "{% include 'summary' %}\n\nThe following security related cookie attributes are defined by RFC 6265 and 6265 bis:\n\n***HttpOnly***: This attribute, when present, prevents web browsers from allowing JavaScript code to access the value of this cookie. This helps mitigate Cross-Site Scripting (XSS) attacks.\n\n***Secure***: This attribute, when present, prevents web brosers from sending the cookie over unencrypted connections. This helps mitigate Main-in-the-Middle attacks.\n\n***SameSite***: This attribute defines the behavior of web browsers when sending cookies across different domains. Its possible values are:\n\n* ***Strict***: The cookie value is only transmitted when the domain matches exactly the one in the URL bar. This is the most secure behavior, since it helps mitigate browser cross-domain attacks.\n* ***Lax***: The cookie value can be sent to its domain even if the domain in the URL does not match. This is the default behavior for legacy reasons and is considered insecure if the cookie contains sensitive information, such as for example a session cookie.\n* ***None***: The cookie value may be sent to any domain. This is obviously also considered insecure; however it is useful for exmaple for tracking cookies that do not contain any sensitive information and must be shared with third party websites.\n",
+
+    recommendations: "The following example shows a session cookie with all security attributes enabled:\n\n```\nSet-Cookie: JSESSIONID=DCFE1E7FB2C6BFFDD5153B7C79B9CEED; HttpOnly; Secure; SameSite=Strict\n```\n",
+
+    details: "{% if issues|length == 1 %}Cookies were found in host {{ issues[0].host }} which had missing or misconfigured security attributes:\n{% for y in issues[0].details %}* {{ y }}\n{% endfor %}{% if issues[0].response is defined %}\nThe following HTTP response shows the issue:\n\n{{ issues[0].response|b64decode|http2md(headersonly=True) }}\n{% endif %}{% else %}{% for x in issues %}***Host: {{ x.host }}***\n\nCookies were found which had the following missing or misconfigured security attributes:\n{% for y in x.details %}* {{ y }}\n{% endfor %}{% if x.response is defined %}\nThe following HTTP response shows the issue:\n\n{{ x.response|b64decode|http2md(headersonly=True) }}\n{% endif %}{% endfor %}{% endif %}",
+
+    taxonomy: [
+    /*
+        "CWE-614",
+        "CWE-1004",
+        "CWE-1275",
+    */
+        "RFC 6265",
+    ],
+
+    references: [
+        "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies",
+        "https://owasp.org/www-community/controls/SecureCookieAttribute",
+        "https://owasp.org/www-community/HttpOnly",
+        "https://web.dev/articles/samesite-cookies-explained",
+    ],
+}

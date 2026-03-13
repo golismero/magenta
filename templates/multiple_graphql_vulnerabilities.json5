@@ -1,0 +1,40 @@
+{
+    title: "{% if issues|length > 1 %}Multiple GraphQL Vulnerabilities Found{% else %}{% include 'title_' + issues[0].cause %}{% endif %}",
+
+    summary: "{% if issues|length > 1 %}Multiple vulnerabilities were found in {% if affects|length > 1 %}several GraphQL endpoints{% else %}one GraphQL endpoint{% endif %}. GraphQL vulnerabilities may have a wide range of possible impacts, from information leaks to denial of service or data tampering.{% else %}{% include 'cause_' + issues[0].cause %} {% include 'consequence_' + issues[0].consequence %}{% endif %}",
+
+    description: "{% include 'summary' %}",
+
+    recommendations: "Whenever possible keep GraphQL endpoints private, exposing only REST API endpoints to browsers.{% if issues|length > 1 %} Additionally, consider implementing the following remediations:\n\n{% for issue in issues %}* {% include 'solution_' + issue.cause %}\n{% endfor %}{% else %}\n\n{% include 'solution_' + issues[0].cause %}{% endif %}",
+
+    title_alias_overloading: "GraphQL Alias Overloading Enabled",
+    title_batch_queries: "GraphQL Array-based Query Batching Allowed",
+    title_get_based_queries: "GraphQL Queries via GET Method Allowed",
+    title_post_based_queries: "GraphQL Queries via Web Form Allowed",
+    title_trace: "GraphQL Debug Mode Enabled",
+    title_field_duplication: "GraphQL Field Duplication Enabled",
+    title_field_suggestions: "GraphQL Field Suggestions Enabled",
+    title_ide: "GraphQL IDE Enabled",
+    title_introspection: "GraphQL Introspection Query Enabled",
+    title_directives_overloading: "GraphQL Directives Overloading Enabled",
+    title_circular_query: "GraphQL Circular-Query via Introspection Allowed",
+    title_mutation_over_get: "GraphQL Mutations via GET Method Allowed",
+    title_unhandled_errors: "Information Exposure in GraphQL Error Messages",
+
+    cause_alias_overloading: "Alias Overloading was found to be enabled.",
+    cause_batch_queries: "",
+
+    consequence_dos: "This may be abused to cause a Denial of Service condition due to excessive algorithmic complexity.",
+    consequence_csrf: "This may lead to the service becoming vulnerable to Cross-Site Request Forgery (CSRF) attacks.",
+    consequence_infoleak: "While this is not in itself an exploitable vulnerability, detailed information given to adversaries may facilitate attacks.",
+
+    details: "",
+
+    references: [
+        "https://portswigger.net/web-security/graphql",
+    ],
+
+    taxonomy: [
+        "CWE-200",
+    ],
+}

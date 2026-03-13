@@ -1,0 +1,15 @@
+{
+    title: "Potential SQL Injection on 'mark_safe' Function",
+
+    summary: "The use of the 'mark_safe' Django function was detected. This may expose the application to SQL injection attacks.",
+
+    description: "{% include 'summary' %}\n\n{% include '../potential_sql_injection_in_code/meta_description' %}\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "{% include '../potential_sql_injection_in_code/recommendations' %}",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://docs.djangoproject.com/en/dev/topics/security/#sql-injection-protection",
+    ],
+}

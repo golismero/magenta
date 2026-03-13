@@ -1,0 +1,11 @@
+{
+    title: "Insecure Cryptographic Algorithm Function Used",
+
+    summary: "The use of {% if code|length == 1 %}an insecure cryptographic algorithm function was{% else %}insecure cryptographic algorithms were{% endif %} detected in the source code. This may expose the application to security flaws, and thus exposure of sensitive information.",
+
+    description: "{% include 'summary' %}\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Replace vulnerable cryptographic functions and algorithms whenever possible. If the use of outdated algorithms is mandated by legacy compatibility reasons, consider drafting a plan to phase out these legacy components accordingly.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+}

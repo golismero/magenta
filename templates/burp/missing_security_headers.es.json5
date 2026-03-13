@@ -1,0 +1,18 @@
+{
+    title: "Missing Security Headers",
+
+    summary: "{% if affects|length > 1 %}Se encontró que algunos servidores web devolvían{% else %}Se encontró que un servidor web devolvía{% endif %} respuestas HTTP sin algunos encabezados de seguridad importantes. El uso de ciertos encabezados HTTP puede mejorar la postura de seguridad de un servidor web.",
+
+    description: "{% include 'summary' %}",
+
+    recommendations: "Incluya tantos encabezados de seguridad como sea posible para su aplicación web. Algunos son fáciles de agregar, mientras que otros pueden requerir una consideración más cuidadosa, ya que su configuración exacta puede depender de los casos de uso de la aplicación, entre otros factores. Puede encontrar un buen recurso que explica cada encabezado y todas las consideraciones necesarias (veggiespam.com) en la sección **Referencias**.",
+
+    details: "{% for x in issues %}***{{ x.host + x.path }}***\n\nSe encontró que los siguientes encabezados de seguridad HTTP faltaban o estaban mal configurados:\n\n{% for y in x.details %}* {{ y }}\n{% endfor %}\n{% if x.response is defined %}La siguiente respuesta HTTP ilustra el problema:\n\n{% if x.request is defined %}**Petición HTTP:**\n\n{{ x.request|b64decode|http2md }}\n{% endif %}**Respuesta HTTP (sólo cabeceras):**\n\n{{ x.response|b64decode|http2md(headersonly=True) }}\n{% endif %}{% endfor %}",
+
+    taxonomy: ["CWE-693"],
+
+    references: [
+        "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html",
+        "https://www.veggiespam.com/good-headers/",
+    ],
+}

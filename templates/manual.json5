@@ -1,0 +1,7 @@
+{
+    title: "{{ title|safe }}",
+    summary: "{{ summary|safe }}",
+    description: "{{ description|safe }}",
+    recommendations: "{{ recommendation|safe }}",
+    details: "{{ details|safe }}",
+}

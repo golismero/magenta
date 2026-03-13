@@ -1,0 +1,20 @@
+{
+    title: "Divulgación de Nombres Cortos (8.3) de IIS",
+
+    summary: "Microsoft Internet Information Server (IIS) sufre una vulnerabilidad que permite la detección de nombres cortos de archivos y directorios que tienen un equivalente en la versión 8.3 del esquema de nombres de archivos.",
+
+    description: "Microsoft Internet Information Server (IIS) sufre una vulnerabilidad que permite la detección de nombres cortos de archivos y directorios que tienen un equivalente en la versión 8.3 del esquema de nombres de archivos. Al crear solicitudes específicas que contengan el carácter de tilde '~', un atacante podría aprovechar esta vulnerabilidad para encontrar archivos o directorios que normalmente no son visibles y obtener acceso a información confidencial. Dadas las llamadas al sistema de archivos subyacente generadas por el servidor remoto, el atacante también podría intentar una denegación de servicio en la aplicación de destino.",
+
+    recommendations: "Para evitar este problema, la compatibilidad con nombres 8.3 debe estar deshabilitada en el servidor:\n\n1. Abra el editor de registro\n2. Naveggue a la clave de registro: `HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\FileSystem`\n3. Haga clic derecho en **NtfsDisable8dot3NameCreation**, y luego haga clic en Modificar.\n4. En el cuadro **Valor**, escriba **1** y luego haga clic en Aceptar.\n\nEl valor de _NtfsDisable8dot3NameCreation_ puede ser uno de los siguientes:\n\n- `0`: Habilita la creación de nombres 8.3 para todos los volúmenes del sistema.\n- `1`: Deshabilita la creación de nombres 8.3 para todos los volúmenes del sistema.\n- `2`: Establece la creación de nombres de 8.3 por volumen.\n- `3`: Deshabilita la creación de nombres 8.3 para todos los volúmenes excepto los de sistema.\n",
+
+    details: "{% if findings|length == 1 %}El siguiente es el resultado de la herramienta _IIS Short Name (8.3) Scanner_, que muestra que el sitio web _{{ findings[0].target }}_ es vulnerable a este problema:\n\n<pre>{{ findings[0].output|escapehtml }}</pre>\n{% else %}El siguiente es el resultado de la herramienta _IIS Short Name (8.3) Scanner_, que muestra que cada sitio web afectado es vulnerable a este problema:\n\n{% for finding in findings %}***{{ finding.target }}***\n\n<pre>{{ finding.output|escapehtml }}\n</pre>\n\n{% endfor %}{% endif %}",
+
+    taxonomy: ["CWE-58", "EDB-ID:19525"],
+
+    references: [
+        "https://soroush.me/blog/2023/07/thirteen-years-on-advancing-the-understanding-of-iis-short-file-name-sfn-disclosure/",
+        "https://soroush.secproject.com/blog/2014/08/iis-short-file-name-disclosure-is-back-is-your-server-vulnerable/",
+        "https://soroush.secproject.com/downloadable/microsoft_iis_tilde_character_vulnerability_feature.pdf",
+        "https://techcommunity-microsoft-com.translate.goog/t5/iis-support-blog/iis-short-name-enumeration/ba-p/3951320?_x_tr_sl=en&_x_tr_tl=es&_x_tr_hl=en&_x_tr_pto=wapp",
+    ]
+}

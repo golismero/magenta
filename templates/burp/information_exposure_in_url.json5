@@ -1,0 +1,17 @@
+{
+    title: "Information Exposure in URL",
+
+    summary: "{% if severity in ('low', 'none') %}Potentially sensitive{% else %}Sensitive{% endif %} information was discovered in URLs during the security test. Information sent in URLs may be intercepted by intermediate proxies, stored in the web browser history or inadvertently shared by users.",
+
+    description: "When a web application sends information to the server via a GET request, the data is not transmitted in the request body as it would happen with other methods, but rather in the URL itself. This may expose the information in a number of specific scenarios, since generally speaking URLs are not considered to be secret; examples of such scenarios include users sharing links, web browsers storing the URLs in their cache and history, reverse proxy logs and web server logs storing visited links, third-party HTTP requests in the *Referer* header, etc.\n\n",
+
+    recommendations: "{% if severity in ('low', 'none') %}Review the information sent via GET requests to ensure none of it may be considered sensitive in nature. In any case, consider switching to POST or PUT requests whenever information needs to be sent to the server.{% else %}Do not send sensitive information over GET requests under any circumstance. Instead, use other HTTP verbs such as POST and PUT to send this information to the server.{% endif %} Alternatively, secure cookies can also be used for this purpose.",
+
+    details: "The following URLs were discovered to contain {% if severity in ('low', 'none') %}potentially {% endif %}sensitive information:\n\n{% for x in issues %}{% for y in x.details %}* {{ y }}\n{% endfor %}{% endfor %}",
+
+    taxonomy: ["CWE-598"],
+    references: [
+        "https://owasp.org/www-community/vulnerabilities/Information_exposure_through_query_strings_in_url",
+        "https://codeql.github.com/codeql-query-help/javascript/js-sensitive-get-query/",
+    ],
+}

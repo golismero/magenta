@@ -1,0 +1,16 @@
+{
+    title: "Jinja2 Autoescaping Disabled",
+
+    summary: "Source code analysis discovered that the Jinja2 templating system was being used without enabling autoescaping.",
+
+    description: "Jinja2 is a Python HTML templating system. It is typically used to build web applications, though appears in other places well, notably the Ansible automation system.\n\nWhen configuring the Jinja2 environment, the option to use autoescaping on input can be specified. When autoescaping is enabled, Jinja2 will filter input strings to escape any HTML content submitted via template variables. Without escaping HTML input the application becomes vulnerable to Cross Site Scripting (XSS) attacks.\n\nUnfortunately, autoescaping is False by default, so it needs to be explicitly enabled.\n\n{% include 'summary' %}\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Explicitly enable Jinja2 autoescaping functionality by setting the `autoescape` parameter to `True`.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://codeql.github.com/codeql-query-help/python/py-jinja2-autoescape-false/",
+        "https://jinja.palletsprojects.com/en/3.1.x/api/",
+    ],
+}

@@ -1,0 +1,17 @@
+{
+    title: "Potential Shell Injection in Python Code",
+
+    summary: "Python possesses many mechanisms to invoke an external executable. However, doing so may present a security issue if appropriate care is not taken to sanitize any user provided or variable input.",
+
+    description: "{% include 'summary' %} Specifically, the spawning of a subprocess using a command shell was detected.\n\nThis type of subprocess invocation is dangerous as it is vulnerable to various shell injection attacks. Great care should be taken to sanitize all input in order to mitigate this risk. Calls of this type are identified by a parameter of 'shell=True' being given.\n\n{% if code|length == 1 %}In this particular case{% elif severity == 'low' %}However, in all instances detected{% else %}In at least one instance detected{% endif %}, {% if severity == 'low' %} the command string is a simple static string containing no special shell characters, which is not likely to result in a security issue.{% elif severity == 'medium' %}the string is static, but contains shell formatting characters or wildcards, which may result in a security issue in some circumstances.{% else %}the command string is computed using Python's string manipulation or formatting operations, which can potentially be abused by attackers if they can supply specially crafted input to the application.{% endif %}\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Avoid launching subprocesses with a command shell. Even in cases where user input cannot alter the command string, this may change in future versions of the application, inadvertently exposing it to security risks.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://docs.python.org/3/library/subprocess.html#frequently-used-arguments",
+        "https://security.openstack.org/guidelines/dg_use-subprocess-securely.html",
+        "https://security.openstack.org/guidelines/dg_avoid-shell-true.html",
+    ],
+}

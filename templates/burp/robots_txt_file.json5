@@ -1,0 +1,18 @@
+{
+    title: "Robots.txt File",
+
+    summary: "{% if issues|length > 1 %}A series of *robots.txt* files were identified{% else %}A *robots.txt* file was idenftified{% endif %}, which {% if severity != 'none' %}contained sensitive information{% else %}may need manual revision{% endif %}.",
+
+    description: "The *robots.txt* file is a mechanism for web applications to exclude certain pages from automated crawling, such as that performed by search engines when indexing a web site. While useful, this mechanism may inadvertently expose pages that were meant to be hidden from public view, potentially revealing secrets.",
+
+    recommendations: "{% if severity != 'none' %}Remove any sensitive information from *robots.txt*, as anything written there should be considered both public and trivial to discover.{% endif %}",
+
+    details: "{% if issues|length == 1 %}{% if issues[0].response is defined %}The following *robots.txt* file was found at {{ issues[0].host }}:\n\n***HTTP Response:***\n{{ issues[0].response|b64decode|http2md(full=True) }}{% else %}A *robots.txt* file was found at {{ issues[0].host }}.{% endif %}{% else %}The following *robots.txt* files were found:\n\n{% for x in issues %}*{{ x.host }}:*\n\n{% if x.response is defined %}***HTTP Response:***\n{{ x.response|b64decode|http2md(full=True) }}\n{% else %}*(Contents not available)\n*{% endif %}{% endfor %}{% endif %}",
+
+    taxonomy: ["CWE-200"],
+
+    references: [
+        "https://developers.google.com/search/docs/crawling-indexing/robots/intro",
+        "https://portswigger.net/kb/issues/00600600_robots-txt-file",
+    ],
+}

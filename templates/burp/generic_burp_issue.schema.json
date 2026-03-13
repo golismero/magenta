@@ -1,0 +1,24 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "properties": {
+        "issues": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "host": {"type": "string"},
+                    "path": {"type": "string"},
+                    "location": {"type": "string"},
+                    "request": {"type": "string"},
+                    "response": {"type": "string"},
+                    "method": {"type": "string"},
+                    "redirected": {"type": "boolean"},
+                    "details": {"type": "array", "items": {"type": "string"}}
+                },
+                "required": ["host"]
+            }
+        }
+    },
+    "required": ["issues"]
+}

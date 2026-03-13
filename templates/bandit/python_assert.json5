@@ -1,0 +1,15 @@
+{
+    title: "Use of the 'assert' Keyword",
+
+    summary: "The use of the 'assert' keyword was detected in the codebase. This should not happen in production code.",
+
+    description: "The use of the 'assert' keyword was detected in the codebase. It was discovered that some projects used assert to enforce interface constraints. However, assert is removed with compiling to optimised byte code (`python -O`) producing \*.opt-1.pyc files). This caused various protections to be removed.\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Consider raising a semantically meaningful error or `AssertionError` instead for code meant to be used in production environments.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://docs.python.org/3/reference/simple_stmts.html#the-assert-statement",
+    ],
+}

@@ -1,0 +1,16 @@
+{
+    title: "No Certificate Validation",
+
+    summary: "{% if code|length == 1 %}An HTTP request was found that was{% else %}Multiple HTTP requests were found that were{% endif %} explicitly disabling the server's certificate validation. This exposes the application to man-in-the-middle attacks.",
+
+    description: "Encryption in general is typically critical to the security of many applications. Using TLS can greatly increase security by guaranteeing the identity of the party you are communicating with. This is accomplished by one or both parties presenting trusted certificates during the connection initialization phase of TLS.\n\nWhen HTTPS request methods are used, certificates are validated automatically which is the desired behavior. If certificate validation is explicitly turned off this will expose the application to man-in-the-middle attacks.\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Evaluate why the certificate validations were removed, and whenever possible enforce certificate checks. If custom certificates are required, it is best to use a custom certificate store rather than disabling the validation.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://security.openstack.org/guidelines/dg_move-data-securely.html",
+        "https://security.openstack.org/guidelines/dg_validate-certificates.html",
+    ],
+}

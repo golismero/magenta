@@ -1,0 +1,20 @@
+{
+    title: "{% if issues|length > 1 %}Cookies Inseguras Detectadas{% else %}Cookie Insegura Detectada{% endif %}",
+
+    summary: "{% if issues|length > 1 %}Se descubrió que a algunas cookies les{% else %}Se descubrió que a una cookie le{% endif %} faltaban atributos de seguridad. El uso de cookies sin los atributos de seguridad adecuados puede ser perjudicial para la seguridad de una aplicación web.",
+
+    description: "{% include 'summary' %}\n\nLos siguientes atributos de cookies relacionados con la seguridad están definidos por RFC 6265 y 6265 bis:\n\n***HttpOnly***: este atributo, cuando está presente, impide que los navegadores web permitan que el código JavaScript acceda al valor de esta cookie. Esto ayuda a mitigar los ataques de secuencias de comandos entre sitios (XSS).\n\n***Secure**: este atributo, cuando está presente, evita que los navegadores web envíen la cookie a través de conexiones no cifradas. Esto ayuda a mitigar posibles ataques de tipo *Main-in-the-Middle*.\n\n***SameSite**: esto El atributo define el comportamiento de los navegadores web al enviar cookies a través de diferentes dominios. Sus posibles valores son:\n\n* ***Strict***: El valor de la cookie sólo se transmite cuando el dominio coincide exactamente con el de la barra de URL. Este es el comportamiento más seguro, ya que ayuda a mitigar los ataques entre dominios del navegador.\n* ***Lax***: el valor de la cookie se puede enviar a su dominio incluso si el dominio en la URL no coincide. Este es el comportamiento predeterminado por motivos heredados y se considera inseguro si la cookie contiene información confidencial, como por ejemplo una cookie de sesión.\n* ***None***: el valor de la cookie se puede enviar a cualquier dominio. Obviamente, esto también se considera inseguro; sin embargo, es útil, por ejemplo, para rastrear cookies que no contienen información confidencial y deben compartirse con sitios web de terceros.\n",
+
+    recommendations: "El siguiente ejemplo muestra una cookie de sesión con todos los atributos de seguridad habilitados:\n\n```\nSet-Cookie: JSESSIONID=DCFE1E7FB2C6BFFDD5153B7C79B9CEED; HttpOnly; Secure; SameSite=Strict\n```\n",
+
+    details: "{% if issues|length == 1 %}Se encontraron cookies en el host {{ issues[0].host }} que tenían atributos de seguridad faltantes o mal configurados:\n{% for y in issues[0].details %}* {{ y }}\n{% endfor %}{% if issues[0].response is defined %}\nLa siguiente respuesta HTTP muestra el problema:\n\n{{ issues[0].response|b64decode|http2md(headersonly=True) }}\n{% endif %}{% else %}{% for x in issues %}***Host: {{ x.host }}***\n\nSe encontraron cookies a las que les faltaban atributos de seguridad o estaban mal configurados:\n{% for y in x.details %}* {{ y }}\n{% endfor %}{% if x.response is defined %}\nLa siguiente respuesta HTTP muestra el problema:\n\n{{ x.response|b64decode|http2md(headersonly=True) }}\n{% endif %}{% endfor %}{% endif %}",
+
+    taxonomy: ["RFC 6265"],
+
+    references: [
+        "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies",
+        "https://owasp.org/www-community/controls/SecureCookieAttribute",
+        "https://owasp.org/www-community/HttpOnly",
+        "https://web.dev/articles/samesite-cookies-explained",
+    ],
+}

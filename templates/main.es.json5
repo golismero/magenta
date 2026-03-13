@@ -1,0 +1,46 @@
+{
+    severity: "Gravedad",
+    critical: "Crítica",
+    high: "Alta",
+    medium: "Media",
+    low: "Baja",
+    none: "Ninguna",
+
+    summary: "Resumen",
+    issues: "Vulnerabilidades Detectadas",
+    notes: "Comentarios Adicionales",
+    tools: "Herramientas",
+    taxonomy: "Taxonomía",
+    affects: "Activos Afectados",
+    description: "Descripción",
+    recommendations: "Recomendaciones",
+    references: "Referencias",
+    details: "Detalles Técnicos",
+
+    vulnid: "VULN-{{ index }}",
+    //vulnid: "VULN-{{ section }}-{{ issue }}",
+
+    header: "# {% include 'title' %}\n\n{% if project_info %}{% include 'project_info' %}\n\n{% endif %}{% include 'header_count' %}\n\n{% include 'header_chart' %}",
+
+    title: "{% if title %}{{ title }}{% else %}{% if project_info %}{{ project_info.client_name }} - {{ project_info.product_name }} - Informe de Seguridad{% else %}Magenta - Informe de Seguridad{% endif %}{% endif %}",
+
+    project_info: "{{ project_info.report_author }} de {{ project_info.report_team }} llevó a cabo un {{ project_info.test_type }} para descubrir vulnerabilidades en {{ project_info.product_name }}, con la autorización de {{ project_info.client_name }}. El test de seguridad se llevó a cabo desde el {{ project_info.start_date }} al {{ project_info.end_date }}. Este informe representa una muestra del estado de la seguridad de {{ project_info.product_name }} al día de {{ project_info.report_date }}.",
+
+    header_count: "{% set issues = severity_count['issues'] %}{% set critical = severity_count['critical'] %}{% set high = severity_count['high'] %}{% set medium = severity_count['medium'] %}{% set low = severity_count['low'] %}{% if issues == 0 %}No se encontraron vulnerabilidades durante el test de seguridad.{% else %}{% if issues == 1 %}{% if critical == 1 %}Se encontró una única vulnerabilidad de gravedad crítica.{% elif high == 1 %}Se encontró una única vulnerabilidad de gravedad alta.{% elif medium == 1 %}Se encontró una única vulnerabilidad de gravedad media.{% elif low == 1 %}Se encontró una única vulnerabilidad de gravedad baja.{% endif %}{% else %}Se encontraron un total de {{ issues }} vulnerabilidades: {% if critical != 0 %}{% if critical == 1 %}una vulnerabilidad de gravedad crítica{% else %}{{ critical }} vulnerabilidades de gravedad crítica{% endif %}{% if (high + medium + low) == 1 %} y {% elif (high + medium + low) == 0 %}.{% else %}, {% endif %}{% endif %}{% if high != 0 %}{% if high == 1 %}una vulnerabilidad de gravedad alta{% else %}{{ high }} vulnerabilidades de gravedad {% endif %}{% if (medium + low) == 1 %} y {% elif (medium + low) == 0 %}.{% else %}, {% endif %}{% endif %}{% if medium != 0 %}{% if medium == 1 %}una vulnerabilidad de gravedad media{% else %}{{ medium }} vulnerabilidades de gravedad media{% endif %}{% if low == 1 %} y {% elif low == 0 %}.{% else %}, {% endif %}{% endif %}{% if low != 0 %}{% if low == 1 %}una vulnerabilidad de gravedad baja.{% else %}{{ low }} vulnerabilidades de gravedad baja.{% endif %}{% endif %}{% endif %}{% endif %}",
+
+    header_chart: "{% if chart %}El siguiente gráfico circular muestra la distribución de los vulnerabilidades encontradas, clasificadas por gravedad:\n<p style='text-align: center;'><img src='data:image/png;base64,{{ chart }}'/></p>{% endif %}",
+
+    summary_table: "## {% include 'summary' %}\n\n{% for severity in severity_keys[::-1] %}{% if show_empty_summary or severity_count[severity] > 0 %}| Gravedad {% include severity %} |\n| --- |\n{% if severity_count[severity] == 0 %}| *No se encontraron vulnerabilidades en esta categoría.* |\n{% else %}{% for title, template, _, issue in issues_by_severity[severity] %}| ***{{ issue.vulnid }}: {{ title|safe }}***<br>{{ summaries_by_id[issue.vulnid]|safe }} |\n{% endfor %}{% endif %}\n{% endif %}{% endfor %}",
+
+    tools_section: "## {% include 'tools' %}\n\nDurante esta prueba de seguridad se utilizaron las siguientes herramientas:\n\n| Nombre | Enlace | Descripción |\n| --- | --- | --- |\n{% for t in tools %}| {{ t.name }} | [{{ t.url }}]({{ t.url }}) | {{ t.description }} |\n{% endfor %}",
+
+    issues_prologue: "## {% include 'issues' %}\n\n{% if severity_count.issues == 0 %}No se encontraron vulnerabilidades. Esta sección se dejó intencionalmente en blanco.{% else %}Los siguientes son los detalles técnicos de todas las vulnerabilidades descubiertas durante la prueba de seguridad. Cada vulnerabilidad contiene una descripción general del problema, recomendaciones sobre cómo solucionarlo y detalles técnicos que profundizan en el problema. También hay enlaces de referencia como lectura adicional.{% endif %}",
+
+    notes_prologue: "## {% include 'notes' %}\n\nEl siguiente es un apéndice con comentarios y observaciones que, si bien no constituyen problemas de seguridad por sí solos, pueden de todas formas requerir mayor investigación y/o pueden ser dignos de mención.",
+
+    issue_subsections: "### {% if vulnid %}{{ vulnid }}: {% endif %}{{ title }}\n\n{% for name, text in rendered %}#### {% include name %}\n\n{{ text|safe }}\n\n{% endfor %}",
+    issue_affects: "{% for target in affects %}* {{ target }}\n{% endfor %}",
+    issue_taxonomy: "{% for t in taxonomy %}* **{{ t.tag }}**{% if t.url is defined %}: [{{ t.url }}]({{ t.url }}){% endif %}\n{% endfor %}",
+    issue_tools: "{% for t in tools %}* **{{ t.name }}**{% if t.url is defined %}: [{{ t.url }}]({{ t.url }}){% endif %}\n{% endfor %}",
+    issue_references: "{% for url in references %}* [{{ url }}]({{ url }})\n{% endfor %}",
+}

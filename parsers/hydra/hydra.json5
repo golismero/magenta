@@ -1,0 +1,8 @@
+{
+    url: "https://github.com/vanhauser-thc/thc-hydra",
+    description: {
+        en: "Hydra is a parallelized login cracker which supports numerous protocols to attack. It is very fast and flexible, and new modules are easy to add.",
+        es: "Hydra es un cracker de inicio de sesión en paralelo que admite numerosos protocolos de ataque. Es muy rápido y flexible, y es fácil agregar nuevos módulos."
+    },
+    status: "production"
+}

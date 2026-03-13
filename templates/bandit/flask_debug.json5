@@ -1,0 +1,17 @@
+{
+    title: "Flask Application in Debug Mode",
+
+    summary: "Running Flask applications in debug mode results in the Werkzeug debugger being enabled. This includes a feature that allows arbitrary code execution.",
+
+    description: "{% include 'summary' %}\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Documentation for both Flask and Werkzeug strongly suggests that debug mode should never be enabled on production systems. Operating a production server with debug mode enabled was the probable cause of the Patreon breach in 2015.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://flask.palletsprojects.com/en/1.1.x/quickstart/#debug-mode",
+        "https://werkzeug.palletsprojects.com/en/1.0.x/debug/",
+        "https://labs.detectify.com/2015/10/02/how-patreon-got-hacked-publicly-exposed-werkzeug-debugger/",
+    ],
+}

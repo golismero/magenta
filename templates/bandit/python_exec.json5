@@ -1,0 +1,17 @@
+{
+    title: "Use of the `exec` Function",
+
+    summary: "The use of the `exec` function was detected in the codebase. Using `exec` is inherently dangerous when user input is provided, as it definitionally results in dynamic execution of Python code.",
+
+    description: "{% include 'summary' %}\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Consider refactoring the affected functionality to avoid the dynamic execution of Python code.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://docs.python.org/3/library/functions.html#exec",
+        "https://www.python.org/dev/peps/pep-0551/#background",
+        "https://www.python.org/dev/peps/pep-0578/#suggested-audit-hook-locations",
+    ],
+}

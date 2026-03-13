@@ -1,0 +1,14 @@
+{
+    title: "Outdated JavaScript {% if issues|length == 1 %}Library{% else %}Libraries{% endif %} Found",
+
+    summary: "{% if issues|length == 1 %}An outdated JavaScript library was found to be in use.{% else %}Multiple outdated JavaScript application were found to be in use.{% endif %} Outdated libraries may contain publicly known vulnerabilities which, if applicable to the affected web application, may compromise its security.",
+
+    description: "{% include 'summary' %}",
+
+    recommendations: "Even when no publicly known vulnerabilities are known for them, keeping outdated versions of JavaScript dependencies may increase the chances of a vulnerability in them being found and exploited. Additionally, not all vulnerabilities patched by a new version are fully disclosed.\n\nIt is therefore recommended to implement a robust patching mechanism into the development lifecycle of web applications that prioritizes always keeping up with the latest verion. Doing so would both keep said applications more secure and eliminate the need to track public vulnerabilities in order to decide when to patch.",
+
+    // XXX TODO maybe add the HTTP responses, when available, as evidence
+    details: "The following outdated JavaScript dependencies were found:\n\n{% for x in issues %}***{{ x.host + x.path }}***:\n\n{% for y in x.details %}* Version {{ y }}\n{% endfor %}\n{% endfor %}",
+
+    taxonomy: ["CWE-1104"],
+}

@@ -1,0 +1,11 @@
+{
+    title: "Port Bound to All Interfaces",
+
+    summary: "Binding to all network interfaces can potentially open up a service to traffic on unintended interfaces, that may not be properly documented or secured.",
+
+    description: "{% include 'summary' %}\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "While binding to all interfaces is perfectly legitimate given the right circumstances, hardcoding such behavior in the source code is discouraged. Consider adding a configuration parameter that defines the binding of open ports.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+}

@@ -1,0 +1,14 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "properties": {
+        "template": {"type": "string"},
+        "tools": {"type": "array", "items": {"type": "string"}},
+        "severity": {"enum": ["none", "low", "medium", "high", "critical"]},
+        "affects": {"type": "array", "items": {"type": "string"}},
+        "taxonomy": {"type": "array", "items": {"type": "string", "minLength": 3, "pattern": "^[0-9A-Z][ :\\-0-9A-Z]+$"}},
+        "references": {"type": "array", "items": {"type": "string", "pattern": "^https?://"}},
+        "vulnid": {"type": "string"}
+    },
+    "required": ["template", "tools", "severity", "affects"]
+}

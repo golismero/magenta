@@ -1,0 +1,17 @@
+{
+    title: "Application Uses Mako Templates",
+
+    summary: "The application was detected using the Mako templating system. Mako does not automatically escape variables, potentially exposing the application to Cross Site Scripting (XSS) attacks, and increasing the maintenance of the web application in order to keep it secure.",
+
+    description: "The application was detected using the Mako templating system. Mako is a Python templating system often used to build web applications. It is the default templating system used in Pylons and Pyramid. Unlike Jinja2 (an alternative templating system), Mako has no environment wide variable escaping mechanism. Because of this, all input variables must be carefully escaped before use to prevent possible vulnerabilities to Cross Site Scripting (XSS) attacks.\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Ensure each and every use of an input variable is properly escaped. Consider switching to another templating system such as Jinja2 that can be configured to automatically do the escaping, thus minimizing the chances of user input being accidentally inserted into the HTML output without escaping it first.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://www.makotemplates.org/",
+        "https://owasp.org/www-community/attacks/xss/",
+        "https://security.openstack.org/guidelines/dg_cross-site-scripting-xss.html",
+    ],
+}

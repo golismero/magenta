@@ -1,0 +1,23 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "properties": {
+        "issues": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "path": {"type": "string"},
+                        "cve": {"type": "string"},
+                        "msg": {"type": "string"}
+                    },
+                    "required": ["path", "cve", "msg"]
+                }
+            }
+        }
+    },
+    "required": ["issues"]
+}

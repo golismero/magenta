@@ -1,0 +1,19 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "properties": {
+        "findings": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "target": {"type": "string", "pattern": "^https?://"},
+                    "output": {"type": "string"}
+                },
+                "required": ["target", "output"]
+            }
+        }
+    },
+    "required": ["findings"]
+}

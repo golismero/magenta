@@ -1,0 +1,18 @@
+{
+    title: "Use of 'chmod' to Set Insecure File Permissions",
+
+    summary: "The application was observed setting insecure file permissions with the use of the 'chmod' syscall. This may result in inadvertent exposure of sensitive information.",
+
+    description: "POSIX based operating systems utilize a permissions model to protect access to parts of the file system. This model supports three roles 'owner', 'group' and 'world' each role may have a combination of 'read', 'write' or 'execute' flags sets. The `chmod` syscall is used to manipulate POSIX style permissions.\n\n{% include 'summary' %}{% if severity in ('critical', 'high', 'medium') %} In particular, files were observed to be set with {% if severity =='medium' %}group{% else %}world{% endif %} write or executable permissions.{% endif %}\n\n{% include '../generic_source_code_issue/description' %}'",
+
+    recommendations: "Always consider the Principle of Least Privilege when setting file permissions for all files within the application - files should have the last possible permission settings required for the functionality that is being implemented.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://en.wikipedia.org/wiki/File_system_permissions",
+        "https://en.wikipedia.org/wiki/Principle_of_least_privilege",
+        "https://linux.die.net/man/3/chmod",
+        "https://security.openstack.org/guidelines/dg_apply-restrictive-file-permissions.html",
+    ],
+}

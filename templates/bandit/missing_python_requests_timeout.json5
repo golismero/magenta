@@ -1,0 +1,15 @@
+{
+    title: "Missing Python Requests Timeout",
+
+    summary: "Static analysis revealed the Python `requests` library was used without setting a timeout value. This can potentially be abused by an attacker by manipulating the application into issuing requests that do not return, thus tying up system resources and causing a denial of service condition.",
+
+    description: "{% include 'summary' %}\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Nearly all production code should use this parameter in nearly all requests, failure to do so can cause your program to hang indefinitely.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://requests.readthedocs.io/en/latest/user/advanced/#timeouts",
+    ],
+}

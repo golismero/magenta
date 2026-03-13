@@ -1,0 +1,19 @@
+{
+    title: "Potential SQL Injection in Source Code",
+
+    summary: "{% if code|length == 1 %}An instance of a potential SQL injection attack was{% else %}Multiple instances of potential SQL attacks were{% endif %} detected in the source code.",
+
+    // This will be included by similar SQL injection in source code templates.
+    meta_description: "SQL injection attacks consist of insertion or 'injection' of a SQL query via the input data given to an application. Such injected or modified queries have the potential to query arbitrary data from the database (ncluding sensitive information such as user credentials), alter arbitrary records in the database, or destroy valuable data.\n\nExamples of vulnerable queries in Python follow:\n\n * `\"SELECT %s FROM table;\" % var`\n * `\"SELECT column FROM \" + table`\n * `\"SELECT \" + value + \" FROM \" + table + ...`\n * `\"SELECT {} FROM table;\".format(var)`\n * `f\"SELECT foo FROM bar WHERE id = {product}\"`\n * `\"SELECT * FROM foo WHERE id = '[VALUE]'\".replace(\"[VALUE]\", identifier)`\n\nSimilar vulnerable constructs exist in other languages too. Unless care is taken to sanitize and control the input data when building such SQL statement strings, an injection attack becomes possible.",
+
+    description: "{% include 'summary' %}\n\n{% include 'meta_description' %}\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Always use prepared statements to issue SQL queries. Every programming language that supports issuing SQL queries supports this method of operation, consult the appropriate documentation.\n\nIn some particular queries this may not be possible (typically dynamic queries used to implement paramenterized searches in web applications). When this happens, make sure the dynamic part of the query is never built from user input, but rather from a whitelisted set of choices within the application code.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://www.owasp.org/index.php/SQL_Injection",
+        "https://security.openstack.org/guidelines/dg_parameterize-database-queries.html",
+    ],
+}

@@ -1,0 +1,8 @@
+{
+    title: "{% if issues|length == 1 %}Vulnerabilidad{% else %}Múltiples Vulnerabilidades{% endif %} Detectadas por Nikto",
+    summary: "{% if issues|length == 1 %}Una vulnerabilidad fue detectada{% else %}Múltiples vulnerabilidades fueron detectadas{% endif %} mediante el uso de la herramienta `nikto.pl` en {% if assets|length == 1 %}un activo analizado{% else %}múltiples activos analizados{% endif %}.",
+    description: "{% include 'summary' %}",
+    recommendations: "Hoy en día, es raro encontrar sistemas con vulnerabilidades que puedan ser detectadas por Nikto, con lo que en general este tipo de resultados son falsos positivos. Sin embargo, en sistemas antiguos y poco mantenidos es posible encontrar vulnerabilidades con esta herramienta. Si es este el caso, precisamente por ser vulnerabilidades antiguas y muy conocidas, esto se vuelve especialmente grave. Por este motivo, no se puede dar una recomendación general, ya que la solución depende mucho del contexto. Se requiere una revisión manual de cada vulnerabilidad listada en la sección *{% include '/main/details' %}*.",
+    details: "Los siguientes son los resultados del análisis realizado con la herramienta `nikto.pl`:\n\n{% for key, value in issues.items() %}***Host: {{key}}***\n| Path | CVE | Problema |\n| --- | --- | --- |\n{% for v in value %}| {{v.path}} | {{v.cve|join(', ')}} | {{v.msg}} |\n{% endfor %}\n\n{% endfor %}",
+    references: ["https://github.com/sullo/nikto"],
+}

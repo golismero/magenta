@@ -1,0 +1,11 @@
+{
+    title: "Source Code Issue Detected",
+
+    summary: "An unspecified issue was detected in the source code of the application that requires manual review.",
+
+    description: "This vulnerability has been discovered using a static code analyzer. As such, there is always a possibility for false positives in the tool's detection. Manual inspection of the source code is required.",
+
+    recommendations: "",
+
+    details: "{% if bandit is defined %}The tool 'bandit' reported this issue using {% if bandit|length == 1 %}code `{{ bandit[0] }}`{% else %}codes: `{{ ' '.join(bandit) }}`{% endif %}. A link to the relevant plugin can be found in the *References* section below.\n\n{% endif %}{% if code|length == 1 %}{% set c = code[0] %}The issue was identified in file **{{ c.file }}**, line **{{ c.line}}**.\n\n{% if c.trace %}{% if c.trace|length == 1 %}{% set t = c.trace[0] %}<pre language={{ t.language }}>{% for s in t.source %}{{ s.line }}:\t{{ s.text|escapehtml }}\n{% endfor %}</pre>\n\n{% else %}*Trace:*\n\n{% for t in c.trace %}*{{ t.file }}*\n\n<pre language={{ t.language }}>{% for s in t.source %}{{ s.line }}:\t{{ s.text|escapehtml }}\n{% endfor %}</pre>\n\n{% endfor %}{% endif %}{% endif %}{% else %}The issue was identified in the following source code locations:\n\n{% for c in code %}**{{ c.file }}, line {{ c.line }}**\n\n{% if c.trace %}{% if c.trace|length == 1 %}{% set t = c.trace[0] %}<pre language={{ t.language }}>{% for s in t.source %}{{ s.line }}:\t{{ s.text|escapehtml }}\n{% endfor %}</pre>\n\n{% else %}*Trace:*\n\n{% for t in c.trace %}*{{ t.file }}*\n\n<pre language={{ t.language }}>{% for s in t.source %}{{ s.line }}:\t{{ s.text|escapehtml }}\n{% endfor %}</pre>\n\n{% endfor %}{% endif %}{% endif %}{% endfor %}{% endif %}",
+}

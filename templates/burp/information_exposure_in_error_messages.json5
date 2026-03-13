@@ -1,0 +1,13 @@
+{
+    title: "Information Exposure in Error Message{% if issues|length > 1 %}s{% endif %}",
+
+    summary: "{% if issues|length > 1 %}Multiple server-generated error messages have been detected which {% if severity == 'none' %}may contain{% else %}contain{% endif %}{% else %}A server-generated error message has been detected which {% if severity == 'none' %}may contain{% else %}contains{% endif %}{% endif %} sensitive information.",
+
+    description: "{% include 'summary' %}\n\n{% if severity not in ('high', 'critical') %}Altough such issues do not constitute a vulnerability per se, in the sense that generally there is no direct way to exploit them, the information revealed may be instrumental to an attacker who is exploiting other vulnerabilities. Examples of this include revealing internal hostnames and IP addresses, exact software versions (which may be vulnerable to publicly known flaws), file paths within the server (which may be leveraged for exploiting path traversal vulnerabilities), detailed exception tracebacks (that may aid in exploitation of SQL injection issues), internal project, component codenames or employee email addresses (useful for spear phishing campaigns), etc.{% endif %}",
+
+    recommendations: "{% if severity == 'none' %}It is often best to remove{% else %}Remove{% endif %} {% if severity in ('high', 'critical') %}immediately all{% else %}any{% endif %} {% if severity == 'none' %}potentially {% endif %}sensitive information from error messages in production systems. Errors shown to users should be limited to the minimal needed information to make use of the application. Detailed errors meant for developer troubleshooting should be sent to the logs instead.",
+
+    details: "{% for x in issues %}{% if x.response is defined %}The following detailed error message was observed in a response from host *{{ x.host }}* when an unhandled {% if x.details is defined and x.details|length > 0 %}{{ x.details[0].split('-')[0].strip() }} {% endif %}exception was triggered:\n\n{% if x.request is defined %}***HTTP Request:**\n\n{{ x.request|b64decode|http2md }}\n{% endif %}***HTTP Response:**\n\n{{ x.response|b64decode|http2md }}{% else %}A detailed error message was observed in a response from the server when accessing *https://{{ x.host + x.path }}* when an unhandled {% if x.details is defined and x.details|length > 0 %}{{ x.details[0].split('-')[0].strip() }} {% endif %}exception was triggered.{% endif %}\n{% endfor %}",
+
+    taxonomy: ["CWE-209", "CWE-550"],
+}

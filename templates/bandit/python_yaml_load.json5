@@ -1,0 +1,15 @@
+{
+    title: "Insecure YAML Load",
+
+    summary: "The application was detected using the `yaml.load` function to load YAML content. The `yaml.load` function provides the ability to construct an arbitrary Python object, which may be dangerous if you receive a YAML document from an untrusted source.",
+
+    description: "{% include 'summary' %}\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Ensure each and every use of an input variable is properly escaped. Consider switching to another templating system such as Jinja2 that can be configured to automatically do the escaping, thus minimizing the chances of user input being accidentally inserted into the HTML output without escaping it first.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "https://pyyaml.org/wiki/PyYAMLDocumentation#LoadingYAML",
+    ],
+}

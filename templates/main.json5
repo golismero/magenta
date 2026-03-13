@@ -1,0 +1,75 @@
+{
+
+    // These are translations for some of the words we will use in the report.
+    // They take no input.
+    // XXX FIXME maybe move them to template variables instead
+
+    severity: "Severity",
+    critical: "Critical",
+    high: "High",
+    medium: "Medium",
+    low: "Low",
+    none: "None",
+
+    // These are translations for report section and subsection names.
+    // They take no input.
+    // XXX FIXME maybe separate sections from subsections
+
+    summary: "Report Summary",
+    issues: "Security Issues",
+    notes: "Additional Notes",
+    tools: "Tools",
+    taxonomy: "Taxonomy",
+    affects: "Affects",
+    description: "Description",
+    recommendations: "Recommendations",
+    references: "References",
+    details: "Details",
+
+    // This is specifically used to generate the vulnerability IDs.
+    //
+    // It expects exactly these variables:
+    //   index:     Index for this issue in the entire report.
+    //   section:   Index for the section for this issue.
+    //   issue:     Index for this issue in its corresponding section.
+    //
+    // XXX FIXME maybe add codes here for client, project, SOW, etc.
+
+    vulnid: "VULN-{{ index }}",
+    //vulnid: "VULN-{{ section }}-{{ issue }}",
+
+    // These are the templates for the top level of the report.
+    // The 'metadata' dictionary is used for their input.
+    // Check out the source code to know what you can find there (it's a lot).
+
+    header: "# {% include 'title' %}\n\n{% if project_info %}{% include 'project_info' %}\n\n{% endif %}{% include 'header_count' %}\n\n{% include 'header_chart' %}",
+
+    title: "{% if title %}{{ title }}{% else %}{% if project_info %}{{ project_info.client_name }} - {{ project_info.product_name }} - {{ project_info.test_type }}{% else %}Magenta Vulnerability Report{% endif %}{% endif %}",
+
+    project_info: "{{ project_info.report_author }} from {{ project_info.report_team }} conducted a {{ project_info.test_type }} to discover vulnerabilities on {{ project_info.product_name }}, on behalf of {{ project_info.client_name }}. The test was carried out between {{ project_info.start_date }} and {{ project_info.end_date }} and its findings represent a snapshot of the security state of {{ project_info.product_name }} at the time of writing, {{ project_info.report_date }}.",
+
+    header_count: "{% set issues = severity_count['issues'] %}{% set critical = severity_count['critical'] %}{% set high = severity_count['high'] %}{% set medium = severity_count['medium'] %}{% set low = severity_count['low'] %}{% if issues == 0 %}No security issues were found during the engagement.{% else %}{% if issues == 1 %}{% if critical == 1 %}A single critical severity issue was found.{% elif high == 1 %}A single high severity issue was found.{% elif medium == 1 %}A single medium severity issue was found.{% elif low == 1 %}A single low severity issue was found.{% endif %}{% else %}A total of {{ issues }} issues were found: {% if critical != 0 %}{% if critical == 1 %}one critical severity issue{% else %}{{ critical }} critical severity issues{% endif %}{% if (high + medium + low) == 1 %} and {% elif (high + medium + low) == 0 %}.{% else %}, {% endif %}{% endif %}{% if high != 0 %}{% if high == 1 %}one high severity issue{% else %}{{ high }} high severity issues{% endif %}{% if (medium + low) == 1 %} and {% elif (medium + low) == 0 %}.{% else %}, {% endif %}{% endif %}{% if medium != 0 %}{% if medium == 1 %}one medium severity issue{% else %}{{ medium }} medium severity issues{% endif %}{% if low == 1 %} and {% elif low == 0 %}.{% else %}, {% endif %}{% endif %}{% if low != 0 %}{% if low == 1 %}one low severity issue.{% else %}{{ low }} low severity issues.{% endif %}{% endif %}{% endif %}{% endif %}",
+
+    header_chart: "{% if chart %}The following pie chart shows the distribution of issues found, classified by severity:\n<p style='text-align: center;'><img src='data:image/png;base64,{{ chart }}'/></p>{% endif %}",
+
+    summary_table: "## {% include 'summary' %}\n\n{% for severity in severity_keys[::-1] %}{% if show_empty_summary or severity_count[severity] > 0 %}| {% include severity %} Severity Issues |\n| --- |\n{% if severity_count[severity] == 0 %}| *No issues found in this category.* |\n{% else %}{% for title, template, _, issue in issues_by_severity[severity] %}| ***{{ issue.vulnid }}: {{ title|safe }}***<br>{{ summaries_by_id[issue.vulnid]|safe }} |\n{% endfor %}{% endif %}\n{% endif %}{% endfor %}",
+
+    // Doesn't work - Jinja2 doesn't like my use of any() probably
+    //tools_section: "## {% include 'tools' %}\n\n{% if tools and any(t.url and t.description for t in tools) %}The following tools were used during this engagement:\n\n| Name | Link | Description |\n| --- | --- | --- |\n{% for t in tools %}{% if t.url or t.description %}| {{ t.name }} | {% if t.url %}[{{ t.url }}]({{ t.url }}){% else %}-{% endif %} | {% if t.description %}{{ t.description }}{% else %}-{% endif %} |\n{% endfor %}{% else %}No automated tools were used during the engagement. All issues reported here have been found through manual testing.{% endif %}",
+
+    tools_section: "## {% include 'tools' %}\n\nThe following tools were used during this engagement:\n\n| Name | Link | Description |\n| --- | --- | --- |\n{% for t in tools %}| {{ t.name }} | [{{ t.url }}]({{ t.url }}) | {{ t.description }} |\n{% endfor %}",
+
+    issues_prologue: "## {% include 'issues' %}\n\n{% if severity_count.issues == 0 %}No issues were found. This section was left intentionally blank.{% else %}The following are the technical details of all the security issues discovered during the engagement. Each issue contains a general description of the problem, recommendations on how to fix it, and technical details delving deeper into the issue. There are also additional reference links for further reading.{% endif %}",
+
+    notes_prologue: "## {% include 'notes' %}\n\nThe following is an appendix with comments and observations that, while not constituting security issues by themselves, may still require further investigation and/or may be otherwise worthy of note.",
+
+    // These are templates we use for some issue subsections that are handled by Magenta directly.
+    // As with the vulnerability templates, they expect an issue object as input.
+    // These can be overridden by vulnerability templates.
+
+    issue_subsections: "### {% if vulnid %}{{ vulnid }}: {% endif %}{{ title }}\n\n{% for name, text in rendered %}#### {% include name %}\n\n{{ text|safe }}\n\n{% endfor %}",
+    issue_affects: "{% for target in affects %}* {{ target }}\n{% endfor %}",
+    issue_taxonomy: "{% for t in taxonomy %}* **{{ t.tag }}**{% if t.url is defined %}: [{{ t.url }}]({{ t.url }}){% endif %}\n{% endfor %}",
+    issue_tools: "{% for t in tools %}{% if not t.hidden %}* **{{ t.name }}**{% if t.url is defined %}: [{{ t.url }}]({{ t.url }}){% endif %}\n{% endif %}{% endfor %}",
+    issue_references: "{% for url in references %}* [{{ url }}]({{ url }})\n{% endfor %}",
+}

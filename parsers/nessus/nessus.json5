@@ -1,0 +1,8 @@
+{
+    url: "https://www.tenable.com/products/nessus",
+    description: {
+        en: "Nessus is a proprietary vulnerability scanner developed by Tenable, Inc.",
+        es: "Nessus es un escáner de vulnerabilidades propietario, desarrollado por Tenable, Inc.",
+    },
+    status: "development"
+}

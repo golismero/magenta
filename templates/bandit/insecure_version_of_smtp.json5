@@ -1,0 +1,15 @@
+{
+    title: "Insecure Version of SMTP in Use",
+
+    summary: "The use of insecure SMTP versions 1 and 2 is discouraged, as it may introduce security risks in the application.",
+
+    description: "{% include 'summary' %}\n\n{% include '../generic_source_code_issue/description' %}",
+
+    recommendations: "Switch to SMTP version 3 whenever possible.",
+
+    details: "{% include '../generic_source_code_issue/details' %}",
+
+    references: [
+        "http://snmplabs.com/pysnmp/examples/hlapi/asyncore/sync/manager/cmdgen/snmp-versions.html",
+    ],
+}

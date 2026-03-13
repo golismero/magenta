@@ -1,0 +1,23 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "properties": {
+        "firewalls": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "firewall": {"type": "string"},
+                        "manufacturer": {"type": "string"}
+                    },
+                    "required": ["firewall", "manufacturer"]
+                }
+            }
+        }
+    },
+    "required": ["firewalls"]
+}

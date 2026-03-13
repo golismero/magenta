@@ -1,0 +1,20 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "properties": {
+        "plaintext_ports": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "address": {"type": "string"},
+                    "port": {"type": "string"},
+                    "service": {"type": "string"}
+                },
+                "required": ["address", "port"]
+            }
+        }
+    },
+    "required": ["plaintext_ports"]
+}

@@ -1,0 +1,17 @@
+{
+    title: "Puertos Abiertos en Claro",
+    taxonomy: ["CWE-319"],
+    references: [
+        "https://es.wikipedia.org/wiki/Anexo:Puertos_de_red",
+        "https://www.avast.com/es-cl/business/resources/what-is-port-scanning",
+        "https://www.redeszone.net/tutoriales/configuracion-puertos/puertos-abiertos-atacar-que-pueden-hacer/",
+        ],
+
+    summary: "Se han detectado puertos abiertos durante {% if affects|length == 1 %}un escaneo de puertos{% else %}múltiples escaneos de puertos{% endif %}. Estos puertos no usaban cifrado para proteger los datos en tránsito.",
+
+    description: "Durante el escaneo de seguridad, {% if affects|length == 1 %}se detectó un puerto abierto{% else %}se detectaron puertos abiertos{% endif %} que no utilizaban cifrado para proteger los datos en tránsito. Esto puede dar lugar a que se divulgue información confidencial a posibles atacantes.\n\nCabe señalar que el impacto exacto de este problema depende en gran medida del contexto, como la relevancia de {% if affects|length == 1 %}el servicio expuesto por este puerto y si este servicio transmite{% else %}los servicios expuestos por este puerto abierto y si estos servicios transmiten{% endif %} información sensible o no. La clasificación de gravedad presentada en este informe es simplemente una estimación y debe revisarse teniendo en cuenta este contexto.",
+
+    recommendations: "Cuando sea posible, proteja todos los servicios con TLS para cifrar los datos en tránsito.\n\nAlgunos protocolos implementan mecanismos para actualizar las conexiones de texto sin formato a conexiones cifradas después de establecerse; se debe tener cuidado en estos casos para garantizar que no sea posible excluirse de esto. actualización, para evitar que los datos queden expuestos accidentalmente debido a errores de configuración en el lado del cliente. Algunos ejemplos de dichos servicios incluyen SMTP, IMAP y FTP.\n\nOtros servicios como TELNET no permiten el uso de cifrado; en estos casos, la recomendación es reemplazarlos por completo con un protocolo más seguro, como SSH.",
+
+    details: "Durante la prueba de seguridad se identificaron los siguientes servicios de texto plano:\n\n| Dirección IP | Puerto | Servicio |\n| --- | --- | --- |\n{% for row in plaintext_ports %}| {{ row.address }} | {{ row.port }} | {{ row.service }} |\n{% endfor %}",
+}

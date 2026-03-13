@@ -1,0 +1,16 @@
+{
+    title: "Mixed Content Page{% if affects|length > 1 %}s{% endif %} Detected",
+
+    summary: "{% if affects|length == 1 %}A web page was{% else %}Multiple web pages were{% endif %} found to have mixed HTTP and HTTPS content. This may result in a compromise of the user's web browser in a man-in-the-middle scenario.",
+
+    description: "Mixed content pages are web pages that fetch some of their content from secure HTTPS links, and insecure, unencrypted HTTP links. This was often done in legacy systems due to the, at the time, prohibitive costs of encrypting network traffic using late 90's and early 00's hardware.\n\nAt first glance this may not seem like a big problem when the unencrypted data is not meant to be secret. However, there is an intrinsic security risk in this practice; namely, in a man-in-the-middle scenario (that is, an attacker strategically located in the network with the capacity to intercept network traffic) could modify the unencrypted content to inject malicious code, and so compromise the web browser of unsuspecting users.\n\nAdditionally, mixed content pages are likely to raise security warnings in modern browsers, which may cause user experience friction.",
+
+    recommendations: "Always serve the entirety of the web content over secure, encrypted HTTPS links. There is no realistic use case for unencrypted content in today's web ecosystem, as encrypted traffic is no longer difficult to handle for modern hardware.",
+
+    // XXX FIXME this could use some love
+    details: "{% if affects|length == 1 %}The following resources were found to be loaded via unencrypted HTTP links at {{ affects[0] }}:\n\n{% for x in issues[0].details %}* {{ x }}\n{% endfor %}{% else %}{% for x in issues %}***{{ x.host + x.path }}***:\n\nThe following resources were found to be loaded via unencrypted HTTP links:\n\n{% for y in x.details %}* {{ y }}\n{% endfor %}{% endfor %}{% endif %}",
+
+    taxonomy: [],
+
+    references: ["https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content"],
+}
