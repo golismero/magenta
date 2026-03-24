@@ -5,19 +5,27 @@
 
 Magenta Reporter takes the output files from commonly used penetration testing tools and generates a ready to use report in Markdown format. You can either use the report as-is or edit it to your liking. Its powerful templating system allows for easy expansion, modification and customization of the reports it generates.
 
-## How to install it?
+## How do I install it?
 
-You will need Python 3.x, which can be downloaded [here](https://www.python.org/).
+Magenta works on any operating system, in principle, but has been tested mostly on Debian Linux and Mac OS X. The following instructions assume such an environment.
 
-Then, download the source code from Github or clone it using Git:
+The first step is to install Python. You can download it from here: https://www.python.org/downloads/
 
-`git clone https://github.com/MarioVilas/magenta.git``
+The next step is to download Magenta. It's best to use Git for this, so you can easily get updates. You can download Git from here: https://git-scm.com/downloads
 
-Finally, install the dependencies:
+Here's how you download Magenta using Git:
 
+```sh
+git clone https://github.com/golismero/magenta.git
 ```
+
+The next step is to install Pip, the Python package manager. This is needed to install the dependencies. You can download Pip here: https://pip.pypa.io/en/stable/installation/
+
+Run this in your shell to look for all of the dependencies and install them:
+
+```sh
 cd magenta
-python3 -m pip install -r requirements.txt
+for r in $(find . -name requirements.txt); do python3 -m pip install -r requirements.txt; done
 ```
 
 ## How do I use it?
@@ -55,29 +63,6 @@ python3 magenta.py my_pentest_files/ -o data.json
 ```
 
 There's more info for developers below, but as a final user you don't need to worry about any of this.
-
-## How do I install it?
-
-Magenta works on any operating system, in principle, but has been tested mostly on Debian Linux and Mac OS X. The following instructions assume such an environment.
-
-The first step is to install Python. You can download it from here: https://www.python.org/downloads/
-
-The next step is to download Magenta. It's best to use Git for this, so you can easily get updates. You can download Git from here: https://git-scm.com/downloads
-
-Here's how you download Magenta using Git:
-
-```sh
-git clone https://github.com/golismero/magenta.git
-```
-
-The next step is to install Pip, the Python package manager. This is needed to install the dependencies. You can download Pip here: https://pip.pypa.io/en/stable/installation/
-
-Run this in your shell to look for all of the dependencies and install them:
-
-```sh
-cd magenta
-for r in $(find . -name requirements.txt); do python3 -m pip install -r requirements.txt; done
-```
 
 ## How does it work?
 
@@ -153,3 +138,11 @@ More details can be found by reading the source code, which is heavily commented
 As mentioned above, the data model that allows the communication between the parsers and the templates is defined by a series of JSON schema files. The main schema can be found in [templates/main.schema.json](templates/main.schema.json), and defines the common format all files produced by parsers and consumed by templates must follow. The engine itself will also rely on this common schema, since it needs to be able to parse the JSON data well enough to know how to route the data from parsers to templates. Each template will define a custom JSON schema, but it includes **only the new properties defined by the template**, which makes it a lot easier to add new templates without duplicating schema information. For example, the [templates/nmap/cleartext_open_ports.schema.json](templates/nmap/cleartext_open_ports.schema.json)
 
 When templates have the exact same schema, or even the exact same Python scripts, we just add a symlink to it, to avoid code duplication in the cheapest way. Be mindful of this when working on Windows hosts, since Git on Windows can be a bit particular with symlinks in that platform.
+
+## How can I contribute to this project?
+
+If you're a coder, here's a list of stuff I'd like someone to give me a hand with: [CONTRIB.md](CONTRIB.md)
+
+**Important note**: While I don't mind AI-generated code, *please* refrain from sending me AI slop in pull requests - it takes longer for me to review than it does for you to shoot off a prompt, and sometimes even more than it would for me to just write the thing myself, so even when your intentions are good, the results may not be! Be mindful of the limitations of generative AI. Just because Claude told you the code works doesn't mean it does - the bloody thing loves gaslighting humans. So *please* take a good look at anything you submit, and *please, please, please* do test it yourself before sending it over! 🙏
+
+If you're not a coder but would still like to support me, you can check out the sponsor buttons and send a donation if you're able to (and I sure wish you would! 😄)
