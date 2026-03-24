@@ -70,7 +70,7 @@ Sure can! There's even a convenience script with a simplified CLI to do exactly 
 
 You don't even need to clone the repository for this - just drop the `magenta.sh` script anywhere where Docker is installed and it'll pull the latest image and run it for you.
 
-```bash
+```sh
 wget https://raw.githubusercontent.com/golismero/magenta/refs/heads/main/magenta.sh
 chmod +x magenta.sh
 ./magenta.sh --help
