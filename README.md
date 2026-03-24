@@ -67,7 +67,7 @@ The next step is to download Magenta. It's best to use Git for this, so you can 
 Here's how you download Magenta using Git:
 
 ```sh
-git clone git@github.com:MarioVilas/magenta.git
+git clone https://github.com/golismero/magenta.git
 ```
 
 The next step is to install Pip, the Python package manager. This is needed to install the dependencies. You can download Pip here: https://pip.pypa.io/en/stable/installation/
