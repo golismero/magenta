@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import fnmatch
+import json
 import os
 import os.path
 import sys
@@ -25,16 +26,21 @@ try:
 except KeyError:
     MAGENTA_HOME = os.path.dirname(os.path.abspath(__file__))
 MAGENTA_HOME = os.path.abspath(MAGENTA_HOME)
-assert os.path.isdir(MAGENTA_HOME), "Invalid 'MAGENTA_HOME' environment variable: '%s'" % MAGENTA_HOME
+assert os.path.isdir(MAGENTA_HOME), (
+    "Invalid 'MAGENTA_HOME' environment variable: '%s'" % MAGENTA_HOME
+)
 os.environ["MAGENTA_HOME"] = MAGENTA_HOME
 
 try:
     from libmagenta import VERSION
+    from libmagenta.engine import MagentaReporter
 except ImportError:
     import sys
+
     sys.path.insert(1, os.environ["MAGENTA_HOME"])
     from libmagenta import VERSION
-from libmagenta.engine import MagentaReporter
+    from libmagenta.engine import MagentaReporter
+
 
 # Helper function to format JSON with syntax highlighting.
 def color_json(obj):
@@ -42,25 +48,50 @@ def color_json(obj):
     text = highlight(text, lexer=JsonLexer(), formatter=Terminal256Formatter())
     return text
 
-@click.group(cls=DefaultGroup, default='report', default_if_no_args=True)
-@click.version_option("v%s.%s"%VERSION)
+
+@click.group(cls=DefaultGroup, default="report", default_if_no_args=True)
+@click.version_option("v%s.%s" % VERSION)
 @click.pass_context
 def main(ctx):
     pass
 
+
 @main.command()
-@click.argument("pathname", required=True, type=click.Path(exists=True,
-    file_okay=False, dir_okay=True, readable=True, resolve_path=True))
-@click.option("-o", "--output", default="-",
-    help="Output file for the report. Defaults to standard output.")
-@click.option("-f", "--format", default="auto",
-    type=click.Choice(choices=("auto", "markdown", "json", "obsidian"),
-        case_sensitive=False),
-    help="Output file format. Defaults to 'auto'.")
-@click.option("-l", "--language", default="en",
-    help="Language for the report. Defaults to English ('en').")
-@click.option("-m", "--metadata", type=click.File("r"), default=None,
-    help="Report metadata (project information, rendering settings, etc.)")
+@click.argument(
+    "pathname",
+    required=True,
+    type=click.Path(
+        exists=True, file_okay=False, dir_okay=True, readable=True, resolve_path=True
+    ),
+)
+@click.option(
+    "-o",
+    "--output",
+    default="-",
+    help="Output file for the report. Defaults to standard output.",
+)
+@click.option(
+    "-f",
+    "--format",
+    default="auto",
+    type=click.Choice(
+        choices=("auto", "markdown", "json", "obsidian"), case_sensitive=False
+    ),
+    help="Output file format. Defaults to 'auto'.",
+)
+@click.option(
+    "-l",
+    "--language",
+    default="en",
+    help="Language for the report. Defaults to English ('en').",
+)
+@click.option(
+    "-m",
+    "--metadata",
+    type=click.File("r"),
+    default=None,
+    help="Report metadata (project information, rendering settings, etc.)",
+)
 def report(pathname, output, format, language, metadata):
     """Read all tool output files in the PATHNAME directory
     and generate a report from them.
@@ -105,7 +136,11 @@ def report(pathname, output, format, language, metadata):
 
     # Parse the files and generate the report.
     magenta = MagentaReporter()
-    if metadata is None or "language" not in metadata or metadata["language"] != language:
+    if (
+        metadata is None
+        or "language" not in metadata
+        or metadata["language"] != language
+    ):
         if metadata is not None:
             metadata["language"] = language
         magenta.set_language(language)
@@ -125,12 +160,23 @@ def report(pathname, output, format, language, metadata):
             else:
                 assert False
 
+
 @main.command()
-@click.option("-l", "--language", default="en",
-    help="Language for the tool descriptions. Defaults to English ('en').")
-@click.option("-s", "--status",
-    type=click.Choice(["all", "production", "testing", "development"], case_sensitive=False), default="all",
-    help="Only include tools with the given development status.")
+@click.option(
+    "-l",
+    "--language",
+    default="en",
+    help="Language for the tool descriptions. Defaults to English ('en').",
+)
+@click.option(
+    "-s",
+    "--status",
+    type=click.Choice(
+        ["all", "production", "testing", "development"], case_sensitive=False
+    ),
+    default="all",
+    help="Only include tools with the given development status.",
+)
 @click.pass_context
 def tools(ctx, language, status):
     "Show the list of supported tools and exit."
@@ -152,13 +198,19 @@ def tools(ctx, language, status):
     for tool in sorted(magenta.parsers.keys()):
         metadata = magenta.parsers[tool]
         if status == "all":
-            table.add_row(tool + ".*", metadata["name"], metadata["status"].title(), metadata["description"])
+            table.add_row(
+                tool + ".*",
+                metadata["name"],
+                metadata["status"].title(),
+                metadata["description"],
+            )
         elif status == metadata["status"]:
             table.add_row(tool + ".*", metadata["name"], metadata["description"])
     console = Console()
     print()
     console.print(table)
     print()
+
 
 @main.command()
 @click.pass_context
@@ -175,7 +227,7 @@ def languages(ctx):
             template_name = os.path.splitext(name)[0]
             if os.path.extsep in template_name:
                 template_name, template_language = os.path.splitext(template_name)
-                template_language = template_language[len(os.path.extsep):]
+                template_language = template_language[len(os.path.extsep) :]
             else:
                 template_language = "en"
             if template_language in template_count:
@@ -209,7 +261,9 @@ def languages(ctx):
         if lang not in parser_count:
             parser_count[lang] = 0
     if not languages:
-        print("No templates found! Something is wrong with this installation of Magenta.")
+        print(
+            "No templates found! Something is wrong with this installation of Magenta."
+        )
         return
 
     # Print out a table with the results.
@@ -224,6 +278,7 @@ def languages(ctx):
     console = Console()
     print()
     console.print(table)
+
 
 if __name__ == "__main__":
     try:

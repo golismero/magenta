@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
-from . import *
+from . import Merger
+
 
 # Issue merger for Burp Suite Pro.
 # Since we have a lot of those and they are all identical, it's best to put this code here.
 class BurpMerger(Merger):
-
     # Remove duplicates using a very generic algorithm that uses sorting keys.
     # This does not account for one specific scenario, where we have the same
     # issue with and without HTTP data, but with the same URL. This will have
@@ -36,8 +36,13 @@ class BurpMerger(Merger):
                         for new in issue["taxonomy"]:
                             found = False
                             for orig in value["taxonomy"]:
-                                if orig["software"] == new["software"] and orig["version"] == new["version"]:
-                                    orig["taxonomy"] = sorted(set(orig["taxonomy"] + new["taxonomy"]))
+                                if (
+                                    orig["software"] == new["software"]
+                                    and orig["version"] == new["version"]
+                                ):
+                                    orig["taxonomy"] = sorted(
+                                        set(orig["taxonomy"] + new["taxonomy"])
+                                    )
                                     found = True
                                     break
                             if found:

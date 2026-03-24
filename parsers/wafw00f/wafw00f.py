@@ -23,12 +23,14 @@ except Exception:
         sys.exit(1)
     for line in lines:
         url, detected, firewall, manufacturer = line.split(",", 4)
-        json_input.append({
-            "url": url,
-            "detected": bool(detected.lower() == "true"),
-            "firewall": firewall,
-            "manufacturer": manufacturer,
-        })
+        json_input.append(
+            {
+                "url": url,
+                "detected": bool(detected.lower() == "true"),
+                "firewall": firewall,
+                "manufacturer": manufacturer,
+            }
+        )
 if not json_input:
     sys.stderr.write("Empty file, ignoring.\n")
     sys.stdout.write("[]")
@@ -44,16 +46,18 @@ results_per_url = {}
 urls = set()
 for item in json_input:
     if not item["detected"] or item["firewall"] == "Generic":
-        #sys.stderr.write("Skipped nil result: %r\n" % item)
+        # sys.stderr.write("Skipped nil result: %r\n" % item)
         continue
     url = item["url"]
     if url not in results_per_url:
         results_per_url[url] = []
         urls.add(url)
-    results_per_url[url].append({
-        "firewall": item["firewall"],
-        "manufacturer": item["manufacturer"],
-    })
+    results_per_url[url].append(
+        {
+            "firewall": item["firewall"],
+            "manufacturer": item["manufacturer"],
+        }
+    )
 
 # Generate a single issue object with all of the results.
 issue = {

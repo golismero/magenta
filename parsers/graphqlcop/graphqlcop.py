@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-import re
 import sys
 import json
 import urllib.parse
@@ -68,9 +67,9 @@ REFERENCES = {
     "Unhandled Errors Detection": [],
 }
 
-def main():
 
-    # The output file is expected to be a JSON array.
+def main():
+    # The output file is expected to be a JSON array.
     # However, the tool seems to mix its console messages with the JSON output,
     # so the trick here is to read the file line by line, testing until we get
     # an actual JSON array, ignoring everything else.
@@ -79,7 +78,9 @@ def main():
         if line.startswith('[{"'):
             input_array = json.loads(line)
     if not input_array:
-        sys.stderr.write("WARNING: No vulnerabilities found in input file. Are you sure this is the right file?\n")
+        sys.stderr.write(
+            "WARNING: No vulnerabilities found in input file. Are you sure this is the right file?\n"
+        )
         sys.stdout.write("[]")
         return
 
@@ -102,8 +103,8 @@ def main():
     affects = []
     references = []
     for vuln in input_array:
-        #print(json.dumps(vuln))
-        #print()
+        # print(json.dumps(vuln))
+        # print()
 
         # Ignore tests that were carried out but resulted in no vulnerability.
         if not vuln["result"]:
@@ -128,22 +129,26 @@ def main():
             url = url[1:-1]
         try:
             urllib.parse.urlparse(url)
-        except Exception as e:
+        except Exception:
             raise AssertionError("Malformed URL: '%s'" % url)
         affects.append(url)
 
         # Add the issue data to the list.
-        issues.append({
-            "cause": cause,
-            "consequence": consequence,
-            "severity": severity,
-            "url": url,
-            "command": curl_verify,
-        })
+        issues.append(
+            {
+                "cause": cause,
+                "consequence": consequence,
+                "severity": severity,
+                "url": url,
+                "command": curl_verify,
+            }
+        )
 
     # Warn if no issues were found.
     if not issues:
-        sys.stderr.write("WARNING: No vulnerabilities found in input file. Are you sure this is the right file?\n")
+        sys.stderr.write(
+            "WARNING: No vulnerabilities found in input file. Are you sure this is the right file?\n"
+        )
         sys.stdout.write("[]")
         return
 
@@ -160,6 +165,7 @@ def main():
 
     # Convert the output array to JSON and send it over stdout.
     json.dump([output], sys.stdout)
+
 
 if __name__ == "__main__":
     main()

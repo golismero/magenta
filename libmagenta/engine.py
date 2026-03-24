@@ -4,15 +4,13 @@ import base64
 import copy
 import fnmatch
 import json
-import jsonschema   # tried using fastjsonschema but saw literally no change in speed :(
+import jsonschema  # tried using fastjsonschema but saw literally no change in speed :(
 import marshal
 import os
 import os.path
-import posixpath
 import re
 import subprocess
 import sys
-import time
 import traceback
 import urllib.parse
 import uuid
@@ -24,9 +22,16 @@ import numpy as np
 
 from io import BytesIO
 
-from .template import DynAutoEscapeEnvironment, markup_escape_func, escapehtml, escapemd, http2md, CustomTemplateLoader
+from .template import (
+    DynAutoEscapeEnvironment,
+    escapehtml,
+    escapemd,
+    http2md,
+    CustomTemplateLoader,
+)
 
 ######################################################################################################################
+
 
 class FileCache:
     def __init__(self, pathname):
@@ -34,8 +39,10 @@ class FileCache:
         self.cache = {}
         self.dirty = False
         self.load()
+
     def __del__(self):
         self.save()
+
     def load(self):
         if self.pathname:
             try:
@@ -44,6 +51,7 @@ class FileCache:
             except Exception:
                 if os.path.exists(self.pathname):
                     os.unlink(self.pathname)
+
     def save(self):
         if self.dirty:
             try:
@@ -51,21 +59,23 @@ class FileCache:
                     marshal.dump(self.cache, fd)
             except Exception:
                 pass
+
     def get(self, filename):
         if self.pathname and filename in self.cache:
             last_modified = os.path.getmtime(filename)
             timestamp, data = self.cache[filename]
             if timestamp >= last_modified:
                 return copy.deepcopy(data)
+
     def put(self, filename, data):
         if self.pathname:
             timestamp = os.path.getmtime(filename)
             self.cache[filename] = (timestamp, copy.deepcopy(data))
             self.dirty = True
 
-class MagentaReporter:
 
-    RE_NAME = re.compile(r'^[a-zA-Z0-9_\\-]+$')
+class MagentaReporter:
+    RE_NAME = re.compile(r"^[a-zA-Z0-9_\\-]+$")
 
     SEVERITY_KEYS = ["none", "low", "medium", "high", "critical"]
 
@@ -73,7 +83,7 @@ class MagentaReporter:
         "python_executable": sys.executable,
         "parsers_directory": "parsers",
         "templates_directory": "templates",
-        "internal_cache": ".magenta.cache"
+        "internal_cache": ".magenta.cache",
     }
 
     DEFAULT_METADATA = {
@@ -81,21 +91,24 @@ class MagentaReporter:
         "chart_type": "pie",
         "show_empty_summary": False,
         "show_empty_chart": False,
-        "severity_colors": {        # https://htmlcolorcodes.com/colors/
-            "none": "#87CEEB",      # Sky Blue
-            "low": "#FFBF00",       # Amber
-            "medium": "#EC5800",    # Persimon
-            "high": "#D2042D",      # Cherry
+        "severity_colors": {  # https://htmlcolorcodes.com/colors/
+            "none": "#87CEEB",  # Sky Blue
+            "low": "#FFBF00",  # Amber
+            "medium": "#EC5800",  # Persimon
+            "high": "#D2042D",  # Cherry
             "critical": "#9F2B68",  # Amaranth
         },
-        "report_sections_order": [
-            "header", "summary", "tools", "issues", "notes"
-        ],
+        "report_sections_order": ["header", "summary", "tools", "issues", "notes"],
         "issue_subsections_order": [
-            "severity", "affects",
-            "description", "details", "recommendations",
-            "tools", "taxonomy", "references"
-        ]
+            "severity",
+            "affects",
+            "description",
+            "details",
+            "recommendations",
+            "tools",
+            "taxonomy",
+            "references",
+        ],
     }
 
     SCHEMA_CONFIG = {
@@ -105,9 +118,9 @@ class MagentaReporter:
             "default_language": {"type": "string"},
             "python_executable": {"type": "string"},
             "parsers_directory": {"type": "string"},
-            "templates_directory": {"type": "string"}
+            "templates_directory": {"type": "string"},
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
 
     SCHEMA_METADATA = {
@@ -125,44 +138,55 @@ class MagentaReporter:
                 "properties": {
                     key: {
                         "type": "string",
-                        "pattern": "^#[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]$"
-                    } for key in SEVERITY_KEYS
+                        "pattern": "^#[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]$",
+                    }
+                    for key in SEVERITY_KEYS
                 },
             },
             "report_sections_order": {
                 "type": "array",
-                "items": {"enum": ["header", "summary", "tools", "issues", "notes"]}
+                "items": {"enum": ["header", "summary", "tools", "issues", "notes"]},
             },
             "issue_subsections_order": {
                 "type": "array",
                 "items": {
                     "enum": [
-                        "severity", "affects", "taxonomy",
-                        "description", "details", "recommendations",
-                        "tools", "references"
+                        "severity",
+                        "affects",
+                        "taxonomy",
+                        "description",
+                        "details",
+                        "recommendations",
+                        "tools",
+                        "references",
                     ]
-                }
+                },
             },
             "project_info": {
                 "type": "object",
                 "properties": {
-                    "report_team": {"type": "string"},      # Your company or team
-                    "report_author": {"type": "string"},    # Your name
-                    "client_name": {"type": "string"},      # The client company
-                    "product_name": {"type": "string"},     # The product being pentested
-                    "test_type": {"type": "string"},        # Kind of pentest
-                    "start_date": {"type": "string"},       # Start of testing window
-                    "end_date": {"type": "string"},         # End of testing window
-                    "report_date": {"type": "string"},      # When the report is due
+                    "report_team": {"type": "string"},  # Your company or team
+                    "report_author": {"type": "string"},  # Your name
+                    "client_name": {"type": "string"},  # The client company
+                    "product_name": {"type": "string"},  # The product being pentested
+                    "test_type": {"type": "string"},  # Kind of pentest
+                    "start_date": {"type": "string"},  # Start of testing window
+                    "end_date": {"type": "string"},  # End of testing window
+                    "report_date": {"type": "string"},  # When the report is due
                 },
                 "required": [
-                    "report_team", "report_author",
-                    "client_name", "product_name", "test_type",
-                    "start_date", "end_date", "report_date"
-                ]
-            }
+                    "report_team",
+                    "report_author",
+                    "client_name",
+                    "product_name",
+                    "test_type",
+                    "start_date",
+                    "end_date",
+                    "report_date",
+                ],
+            },
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
 
     SCHEMA_PARSER = {
@@ -173,11 +197,14 @@ class MagentaReporter:
             "status": {"enum": ["production", "testing", "development"]},
             "name": {"type": "string"},
             "url": {"type": "string", "pattern": "^https?://"},
-            "description": {"type": "object", "additionalProperties": {"type": "string"}}
+            "description": {
+                "type": "object",
+                "additionalProperties": {"type": "string"},
+            },
         },
         "if": {"properties": {"hidden": {"const": False}}},
         "then": {"required": ["url", "description"]},
-        "additionalProperties": False
+        "additionalProperties": False,
     }
 
     SCHEMA_TEMPLATE = {
@@ -185,24 +212,28 @@ class MagentaReporter:
         "type": "object",
         "properties": {
             "summary": {"type": "string", "pattern": "^[^\\r\\n]*$"},
-            "references": {"type": "array", "items": {"type": "string", "pattern": "^https?://"}},
-            "taxonomy": {"type": "array", "items": {"type": "string", "minLength": 3}}
+            "references": {
+                "type": "array",
+                "items": {"type": "string", "pattern": "^https?://"},
+            },
+            "taxonomy": {"type": "array", "items": {"type": "string", "minLength": 3}},
         },
         "additionalProperties": {"type": "string"},
-        "required": ["title", "summary", "description", "recommendations", "details"]
+        "required": ["title", "summary", "description", "recommendations", "details"],
     }
 
     SCHEMA_MAIN_TEMPLATE = {
         "$schema": "https://json-schema.org/draft/2019-09/schema",
         "type": "object",
-        "additionalProperties": {"type": "string"}
+        "additionalProperties": {"type": "string"},
     }
 
-    def __init__(self, config = None):
-
+    def __init__(self, config=None):
         # Parse the configuration file.
         self.home = os.path.abspath(os.environ["MAGENTA_HOME"])
-        assert os.path.isdir(self.home), "Invalid 'MAGENTA_HOME' environment variable: '%s'" % self.home
+        assert os.path.isdir(self.home), (
+            "Invalid 'MAGENTA_HOME' environment variable: '%s'" % self.home
+        )
         if config is None:
             self.config = self.DEFAULT_CONFIG
         else:
@@ -229,7 +260,6 @@ class MagentaReporter:
         self.set_language(self.config.get("default_language", None))
 
     def set_language(self, language):
-
         # Switching to None will reset the internal state.
         if not language:
             self.language = None
@@ -244,7 +274,6 @@ class MagentaReporter:
         # Ensure we are left with a consistent internal state in case of errors.
         previous_state = (self.language, self.parsers, self.templates, self.env)
         try:
-
             # Switch to the new language.
             self.language = language
 
@@ -256,13 +285,16 @@ class MagentaReporter:
 
             # Prepare the Jinja environment.
             self.env = DynAutoEscapeEnvironment(
-                    autoescape=True,
-                    escape_func=escapemd,
-                    loader=CustomTemplateLoader(self),
-                    extensions=["jinja2.ext.loopcontrols"])
+                autoescape=True,
+                escape_func=escapemd,
+                loader=CustomTemplateLoader(self),
+                extensions=["jinja2.ext.loopcontrols"],
+            )
             self.env.policies["urlize.extra_schemes"] = "data:"
             self.env.policies["urlize.rel"] = "nofollow noopener"
-            self.env.filters["b64decode"] = lambda s: base64.b64decode(s).decode("utf-8", "ignore")
+            self.env.filters["b64decode"] = lambda s: base64.b64decode(s).decode(
+                "utf-8", "ignore"
+            )
             self.env.filters["escapemd"] = escapemd
             self.env.filters["escapehtml"] = escapehtml
             self.env.filters["http2md"] = http2md
@@ -273,7 +305,7 @@ class MagentaReporter:
             raise
 
     # Parse the configuration file.
-    def _parse_config(self, filename = "magenta.json5"):
+    def _parse_config(self, filename="magenta.json5"):
         if not os.path.isabs(filename):
             filename = os.path.join(self.home, filename)
         with open(filename, "r") as fd:
@@ -286,13 +318,13 @@ class MagentaReporter:
 
     # Parse all JSON5 files in the parsers directory and return a dictionary of parsers.
     def _find_parsers(self, language):
-
         # Get the parsers directory from the configuration.
         path = self.config["parsers_directory"]
         path = os.path.join(self.home, path)
-        assert os.path.commonpath((self.home, path)) == self.home, \
-                "Invalid parsers_directory ('%s') lies outside of MAGENTA_HOME ('%s')" % \
-                (path, self.home)
+        assert os.path.commonpath((self.home, path)) == self.home, (
+            "Invalid parsers_directory ('%s') lies outside of MAGENTA_HOME ('%s')"
+            % (path, self.home)
+        )
 
         # Go through the parsers directory recursively looking for JSON5 files.
         parsers = dict()
@@ -315,8 +347,9 @@ class MagentaReporter:
 
                 # The parser script is derived from the filename.
                 entrypoint = os.path.join(root, tool + ".py")
-                assert os.path.exists(entrypoint), \
-                        "Entrypoint for parser '%s' not found: '%s'" % (tool, entrypoint)
+                assert os.path.exists(entrypoint), (
+                    "Entrypoint for parser '%s' not found: '%s'" % (tool, entrypoint)
+                )
                 data["entrypoint"] = os.path.relpath(entrypoint, start=self.home)
 
                 # The default human readable name is derived from the tool name.
@@ -324,8 +357,10 @@ class MagentaReporter:
                     data["name"] = tool.capitalize()
 
                 # Make sure we don't have duplicated tools.
-                assert tool not in parsers, \
-                        "Duplicated parser '%s' in file %s" % (tool, filename)
+                assert tool not in parsers, "Duplicated parser '%s' in file %s" % (
+                    tool,
+                    filename,
+                )
 
                 # The default development status is "development".
                 if "status" not in data or not data["status"]:
@@ -338,12 +373,14 @@ class MagentaReporter:
                 # Validate the tool URL.
                 try:
                     urllib.parse.urlparse(data["url"])
-                except Exception as e:
+                except Exception:
                     raise AssertionError("Malformed reference URL: '%s'" % data["url"])
 
                 # Remove the descriptions for other languages.
-                assert language in data["description"], \
-                        "Language '%s' not found in metadata for tool '%s'" % (language, tool)
+                assert language in data["description"], (
+                    "Language '%s' not found in metadata for tool '%s'"
+                    % (language, tool)
+                )
                 data["description"] = data["description"][language]
 
                 # Collect the parser's data in a dictionary.
@@ -358,13 +395,13 @@ class MagentaReporter:
 
     # Parse all Python files in the templates directory and return a dictionary of mergers.
     def _find_mergers(self):
-
         # Get the templates directory from the configuration.
         path = self.config["templates_directory"]
         path = os.path.join(self.home, path)
-        assert os.path.commonpath((self.home, path)) == self.home, \
-                "Invalid templates_directory ('%s') lies outside of MAGENTA_HOME ('%s')" % \
-                (path, self.home)
+        assert os.path.commonpath((self.home, path)) == self.home, (
+            "Invalid templates_directory ('%s') lies outside of MAGENTA_HOME ('%s')"
+            % (path, self.home)
+        )
 
         # Go through the templates directory recursively looking for Python files.
         mergers = dict()
@@ -374,8 +411,10 @@ class MagentaReporter:
 
                 # The template name is derived from the filename.
                 template_name = os.path.splitext(name)[0]
-                assert self.RE_NAME.match(template_name), \
-                        "Invalid name '%s' for template found in file '%s'" % (template_name, filename)
+                assert self.RE_NAME.match(template_name), (
+                    "Invalid name '%s' for template found in file '%s'"
+                    % (template_name, filename)
+                )
 
                 # Add the merger script to the dictionary, unless it's the main script.
                 if template_name != "main":
@@ -386,13 +425,13 @@ class MagentaReporter:
 
     # Parse all JSON Schema files in the templates directory and return a dictionary of schemas.
     def _find_schemas(self):
-
         # Get the templates directory from the configuration.
         path = self.config["templates_directory"]
         path = os.path.join(self.home, path)
-        assert os.path.commonpath((self.home, path)) == self.home, \
-                "Invalid templates_directory ('%s') lies outside of MAGENTA_HOME ('%s')" % \
-                (path, self.home)
+        assert os.path.commonpath((self.home, path)) == self.home, (
+            "Invalid templates_directory ('%s') lies outside of MAGENTA_HOME ('%s')"
+            % (path, self.home)
+        )
 
         # Go through the templates directory recursively looking for JSON Schema files.
         schemas = dict()
@@ -402,8 +441,10 @@ class MagentaReporter:
 
                 # The template name is derived from the filename.
                 template_name = os.path.splitext(os.path.splitext(name)[0])[0]
-                assert self.RE_NAME.match(template_name), \
-                        "Invalid name '%s' for template found in file '%s'" % (template_name, filename)
+                assert self.RE_NAME.match(template_name), (
+                    "Invalid name '%s' for template found in file '%s'"
+                    % (template_name, filename)
+                )
 
                 # Load the JSON schema.
                 schema = self.cache.get(filename)
@@ -420,13 +461,13 @@ class MagentaReporter:
 
     # Parse all JSON5 files in the templates directory and return a dictionary of templates.
     def _find_templates(self, language):
-
         # Get the templates directory from the configuration.
         path = self.config["templates_directory"]
         path = os.path.join(self.home, path)
-        assert os.path.commonpath((self.home, path)) == self.home, \
-                "Invalid templates_directory ('%s') lies outside of MAGENTA_HOME ('%s')" % \
-                (path, self.home)
+        assert os.path.commonpath((self.home, path)) == self.home, (
+            "Invalid templates_directory ('%s') lies outside of MAGENTA_HOME ('%s')"
+            % (path, self.home)
+        )
 
         # Go through the templates directory recursively looking for JSON5 files.
         templates = dict()
@@ -439,11 +480,13 @@ class MagentaReporter:
                 template_name = os.path.splitext(name)[0]
                 if os.path.extsep in template_name:
                     template_name, template_language = os.path.splitext(template_name)
-                    template_language = template_language[len(os.path.extsep):]
+                    template_language = template_language[len(os.path.extsep) :]
                 else:
                     template_language = "en"
-                assert self.RE_NAME.match(template_name), \
-                        "Invalid name '%s' for template found in file '%s'" % (template_name, filename)
+                assert self.RE_NAME.match(template_name), (
+                    "Invalid name '%s' for template found in file '%s'"
+                    % (template_name, filename)
+                )
 
                 # Skip the languages we don't need.
                 if template_language != language:
@@ -468,10 +511,14 @@ class MagentaReporter:
                             for url in data["references"]:
                                 try:
                                     urllib.parse.urlparse(url)
-                                except Exception as e:
-                                    raise AssertionError("Malformed reference URL: '%s'" % url)
-                    assert template_name not in templates, \
-                            "Duplicated template '%s' in file '%s'" % (template_name, filename)
+                                except Exception:
+                                    raise AssertionError(
+                                        "Malformed reference URL: '%s'" % url
+                                    )
+                    assert template_name not in templates, (
+                        "Duplicated template '%s' in file '%s'"
+                        % (template_name, filename)
+                    )
 
                 # Save the sanitized template data.
                 templates[template_name] = data
@@ -479,20 +526,22 @@ class MagentaReporter:
         # Return the templates.
         return templates
 
-    #----------------------------------------------------------------------------------------------------------------#
+    # ----------------------------------------------------------------------------------------------------------------#
 
     # Validate an issue object using the corresponding JSON schema.
     def validate_issue(self, issue):
-        #print(issue)    # XXX DEBUG
+        # print(issue)    # XXX DEBUG
         jsonschema.validate(issue, self.schemas["main"])
         assert issue["template"] != "main", "Cannot use 'main' template for an issue"
-        assert issue["template"] in self.schemas, "Unsupported issue template '%s'" % issue["template"]
+        assert issue["template"] in self.schemas, (
+            "Unsupported issue template '%s'" % issue["template"]
+        )
         jsonschema.validate(issue, self.schemas[issue["template"]])
         if "references" in issue:
             for url in issue["references"]:
                 try:
                     urllib.parse.urlparse(url)
-                except Exception as e:
+                except Exception:
                     raise AssertionError("Malformed reference URL: '%s'" % url)
         issue["affects"] = sorted(issue["affects"])
         if "tqxonomy" in issue:
@@ -501,8 +550,7 @@ class MagentaReporter:
             issue["references"] = sorted(issue["references"])
 
     # Validate and sanitize the report metadata.
-    def parse_metadata(self, metadata = None):
-
+    def parse_metadata(self, metadata=None):
         # Shortcut for when the default metadata is used.
         if metadata is None:
             return self.DEFAULT_METADATA
@@ -520,7 +568,9 @@ class MagentaReporter:
             if propname in metadata:
                 if propname == "severity_colors":
                     severity_colors = dict(metadata["severity_colors"])
-                    for propname, propvalue in self.DEFAULT_METADATA["severity_colors"].items():
+                    for propname, propvalue in self.DEFAULT_METADATA[
+                        "severity_colors"
+                    ].items():
                         if propname not in severity_colors:
                             severity_colors[propname] = propvalue
                     copy["severity_colors"] = severity_colors
@@ -597,9 +647,16 @@ class MagentaReporter:
         elif tag.startswith("KB"):
             url = "https://support.microsoft.com/kb/" + tag[2:]
         elif tag.startswith("MS"):
-            url = "https://docs.microsoft.com/en-us/security-updates/securitybulletins/20" + tag[2:4] + "/" + tag.lower()
+            url = (
+                "https://docs.microsoft.com/en-us/security-updates/securitybulletins/20"
+                + tag[2:4]
+                + "/"
+                + tag.lower()
+            )
         elif tag.startswith("MFSA"):
-            url = "https://www.mozilla.org/en-US/security/advisories/" + tag.lower() + "/"
+            url = (
+                "https://www.mozilla.org/en-US/security/advisories/" + tag.lower() + "/"
+            )
         elif tag.startswith("WPVDB-ID:"):
             url = "https://wpscan.com/vulnerability/" + tag[9:].lower() + "/"
         elif tag.startswith("EDB-ID:"):
@@ -625,7 +682,7 @@ class MagentaReporter:
         if url:
             try:
                 urllib.parse.urlparse(url)
-            except Exception as e:
+            except Exception:
                 raise AssertionError("Malformed reference URL: '%s'" % url)
         return url
 
@@ -678,7 +735,10 @@ class MagentaReporter:
         # For the tools subsection, we need the parsers metadata instead of just the names.
         if "tools" in issue_subsections:
             parsers = self.parsers
-            tools = sorted( (parsers[name]["name"], name, parsers[name]) for name in set(issue["tools"]))
+            tools = sorted(
+                (parsers[name]["name"], name, parsers[name])
+                for name in set(issue["tools"])
+            )
             tools = [t for _, _, t in tools]
             issue["tools"] = tools
 
@@ -706,9 +766,9 @@ class MagentaReporter:
                 tag = tag.strip()
                 url = self.url_from_tag(tag)
                 if url:
-                    taglist.append( {"tag": tag, "url": url} )
+                    taglist.append({"tag": tag, "url": url})
                 else:
-                    taglist.append( {"tag": tag} )
+                    taglist.append({"tag": tag})
             issue["taxonomy"] = taglist
 
         # Render the subsections.
@@ -721,7 +781,9 @@ class MagentaReporter:
                     tpl = "main/issue_" + name
                 else:
                     tpl = template + "/" + name
-                sections[name] = self.env.get_template(tpl).render(issue, metadata=metadata).strip()
+                sections[name] = (
+                    self.env.get_template(tpl).render(issue, metadata=metadata).strip()
+                )
 
         # Return the contents of each subsection as a Python dictionary.
         # Note that we don't use the subsection headers here, that's the task of the caller.
@@ -756,7 +818,6 @@ class MagentaReporter:
     # This is defined in the "metadata" parameter.
     #
     def render_report(self, metadata, issuelist):
-
         # Make a copy of the metadata object, since we're going to modify it.
         metadata = copy.deepcopy(metadata)
 
@@ -767,16 +828,16 @@ class MagentaReporter:
             template = issue["template"]
             if template == "manual":
                 continue
-            assert template not in seen_templates, \
-                    "Duplicated '%s' template in report" % template
+            assert template not in seen_templates, (
+                "Duplicated '%s' template in report" % template
+            )
             seen_templates.add(template)
 
         # Collect various objects we will be using often in this method.
-        tags = self.templates["main"] # XXX FIXME
+        tags = self.templates["main"]  # XXX FIXME
         min_severity = metadata["min_severity"]
         report_sections_order = metadata["report_sections_order"]
         issue_subsections_order = metadata["issue_subsections_order"]
-        show_empty_summary = metadata["show_empty_summary"]
 
         # We're producing a dictionary with the sections of the report.
         sections = {}
@@ -786,18 +847,21 @@ class MagentaReporter:
         # We will ignore informational issues (severity "none") here.
         severity_keys = ["low", "medium", "high", "critical"]
         if min_severity != "none":
-            severity_keys = severity_keys[severity_keys.index(min_severity):]
+            severity_keys = severity_keys[severity_keys.index(min_severity) :]
         severity_keys = tuple(severity_keys)
         issues_by_severity = {}
         for severity in severity_keys:
             issues_by_severity[severity] = sorted(
                 (
-                    self.env.get_template(issue["template"] + "/" + "title").render(issue).strip(),
+                    self.env.get_template(issue["template"] + "/" + "title")
+                    .render(issue)
+                    .strip(),
                     issue["template"],
                     str(uuid.uuid4()),
-                    issue
+                    issue,
                 )
-                for issue in issuelist if issue["severity"] == severity
+                for issue in issuelist
+                if issue["severity"] == severity
             )
         metadata["issues_by_severity"] = issues_by_severity
 
@@ -806,9 +870,13 @@ class MagentaReporter:
             sorted_notes = []
             for issue in issuelist:
                 if issue["severity"] == "none":
-                    title = self.env.get_template(issue["template"] + "/" + "title").render(issue).strip()
+                    title = (
+                        self.env.get_template(issue["template"] + "/" + "title")
+                        .render(issue)
+                        .strip()
+                    )
                     issue["title"] = title
-                    sorted_notes.append( (title, issue["template"], issue) )
+                    sorted_notes.append((title, issue["template"], issue))
         else:
             sorted_notes = []
 
@@ -836,7 +904,11 @@ class MagentaReporter:
             if len(subsection) > 0:
                 while issue_index < len(subsection):
                     title, tplname, _, issue = subsection[issue_index]
-                    vulnid = tpl_vid.render(index=index+1, section=section_index+1, issue=issue_index+1).strip()
+                    vulnid = tpl_vid.render(
+                        index=index + 1,
+                        section=section_index + 1,
+                        issue=issue_index + 1,
+                    ).strip()
                     issue["title"] = title
                     issue["vulnid"] = vulnid
                     issue_index += 1
@@ -846,8 +918,8 @@ class MagentaReporter:
         # Finally, put all of the issues into one big list, sorted by severity.
         sorted_issues = []
         for severity in severity_keys[::-1]:
-            for (title, tplname, _, issue) in issues_by_severity[severity]:
-                sorted_issues.append( (severity, title, tplname, issue) )
+            for title, tplname, _, issue in issues_by_severity[severity]:
+                sorted_issues.append((severity, title, tplname, issue))
 
         # Add the list of issues to the metadata, so the templates can access them.
         metadata["issues"] = sorted_issues
@@ -869,9 +941,11 @@ class MagentaReporter:
         metadata["tools"] = tools
 
         # If we have enabled the charts feature, generate one now.
-        if "chart_type" in metadata and \
-                metadata["chart_type"] != "none" and \
-                (total > 1 or metadata["show_empty_chart"] == "yes"):
+        if (
+            "chart_type" in metadata
+            and metadata["chart_type"] != "none"
+            and (total > 1 or metadata["show_empty_chart"] == "yes")
+        ):
             if metadata["chart_type"] == "pie":
                 labels = [
                     "%s (%d)" % (tags[severity], severity_count[severity])
@@ -900,13 +974,17 @@ class MagentaReporter:
             elif metadata["chart_type"] == "bar":
                 plt.bar(labels, np.array(data), color=colors)
             else:
-                raise ValueError("Unsupported or incorrect chart type: '%s'" % metadata["chart_type"])
+                raise ValueError(
+                    "Unsupported or incorrect chart type: '%s'" % metadata["chart_type"]
+                )
             plt.savefig(buf, format="png")
             metadata["chart"] = base64.b64encode(buf.getvalue()).decode("utf-8")
 
         # Render the header section.
         if "header" in report_sections_order:
-            sections["header"] = self.env.get_template("main/header").render(metadata).strip()
+            sections["header"] = (
+                self.env.get_template("main/header").render(metadata).strip()
+            )
 
         # For the summary section, we have a series of tables per severity rating.
         # We don't include the informational issues here, they go in a separate section.
@@ -918,29 +996,39 @@ class MagentaReporter:
                     summary = self.env.get_template(template + "/summary").render(issue)
                     summaries_by_id[issue["vulnid"]] = summary
             metadata["summaries_by_id"] = summaries_by_id
-            sections["summary"] = self.env.get_template("main/summary_table").render(metadata).strip()
+            sections["summary"] = (
+                self.env.get_template("main/summary_table").render(metadata).strip()
+            )
 
         # Render the tools section using the collected tools from the issues.
         # The whole section is skipped if we have no issues or notes.
         if "tools" in report_sections_order and metadata["tools"]:
-            sections["tools"] = self.env.get_template("main/tools_section").render(metadata).strip()
+            sections["tools"] = (
+                self.env.get_template("main/tools_section").render(metadata).strip()
+            )
 
         # Now we render the issues section.
         # We'll only include the requested sections in the requested order.
         # We'll also keep the rendered issues as a dictionary on the side.
         if sorted_issues and "issues" in report_sections_order:
             issues_dict = {}
-            text = self.env.get_template("main/issues_prologue").render(metadata).strip()
+            text = (
+                self.env.get_template("main/issues_prologue").render(metadata).strip()
+            )
             rendered_issues = [("header", text)]
             for severity, _, _, issue in sorted_issues:
                 rendered = self.render_issue(metadata, issue)
                 issues_dict[issue["vulnid"]] = rendered
                 rendered_in_order = [
-                    (name, rendered[name]) for name in issue_subsections_order
+                    (name, rendered[name])
+                    for name in issue_subsections_order
                     if name in rendered and rendered[name]
                 ]
-                text = self.env.get_template("main/issue_subsections").render(
-                        issue, rendered = rendered_in_order).strip()
+                text = (
+                    self.env.get_template("main/issue_subsections")
+                    .render(issue, rendered=rendered_in_order)
+                    .strip()
+                )
                 rendered_issues.append((issue["template"], text))
             sections["issues"] = issues_dict
             sections["rendered_issues"] = rendered_issues
@@ -953,11 +1041,15 @@ class MagentaReporter:
             for _, _, issue in sorted_notes:
                 rendered = self.render_issue(metadata, issue)
                 rendered_in_order = [
-                    (name, rendered[name]) for name in issue_subsections_order
+                    (name, rendered[name])
+                    for name in issue_subsections_order
                     if name in rendered and name != "severity" and rendered[name]
                 ]
-                text = self.env.get_template("main/issue_subsections").render(
-                        issue, rendered = rendered_in_order).strip()
+                text = (
+                    self.env.get_template("main/issue_subsections")
+                    .render(issue, rendered=rendered_in_order)
+                    .strip()
+                )
                 notes.append(rendered)
                 rendered_notes.append((issue["template"], text))
             sections["notes"] = notes
@@ -983,28 +1075,34 @@ class MagentaReporter:
         del metadata["notes"]
         return metadata, sections, report
 
-    #----------------------------------------------------------------------------------------------------------------#
+    # ----------------------------------------------------------------------------------------------------------------#
 
     # Run a tool parser against an input filename.
     def run_parser(self, tool, filename):
         parser = self.parsers[tool]["entrypoint"]
         parser = os.path.join(self.home, parser)
         assert os.path.exists(parser)
-        #print(filename)     # XXX DEBUG
+        # print(filename)     # XXX DEBUG
         with open(filename, "r") as stdin:
             p = subprocess.run(
-                    [self.config["python_executable"], parser],
-                    stdin=stdin, stdout=subprocess.PIPE,
-                    shell=False, check=True, encoding="utf-8", timeout=10)
+                [self.config["python_executable"], parser],
+                stdin=stdin,
+                stdout=subprocess.PIPE,
+                shell=False,
+                check=True,
+                encoding="utf-8",
+                timeout=10,
+            )
         issues = json.loads(p.stdout)
         validated = []
         for issue in issues:
             try:
                 self.validate_issue(issue)
             except Exception:
-                sys.stderr.write(\
-                    "Warning, discarded malformed issue object from '%s' parser when processing file '%s':\n"\
-                     % (tool, filename))
+                sys.stderr.write(
+                    "Warning, discarded malformed issue object from '%s' parser when processing file '%s':\n"
+                    % (tool, filename)
+                )
                 traceback.print_exc()
                 sys.stderr.write("\n")
                 continue
@@ -1015,10 +1113,13 @@ class MagentaReporter:
     # All issues passed to this method must use the same template.
     # Returns a single merged issue.
     def run_merger(self, template, issues):
-        assert template not in ("main", "manual"), "Invalid template '%s' for merger" % template
+        assert template not in ("main", "manual"), (
+            "Invalid template '%s' for merger" % template
+        )
         assert template in self.mergers, "Missing or invalid template: '%s'" % template
-        assert all(issue["template"] == template for issue in issues), \
-                "Template name '%s' does not match for all input issues" % template
+        assert all(issue["template"] == template for issue in issues), (
+            "Template name '%s' does not match for all input issues" % template
+        )
         assert len(issues) > 0, "Cannot merge an empty list of issues"
         merger = self.mergers[template]
         merger = os.path.join(self.home, merger)
@@ -1026,26 +1127,37 @@ class MagentaReporter:
         input_data = json.dumps(issues)
         try:
             p = subprocess.Popen(
-                    [self.config["python_executable"], merger],
-                    stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                    shell=False, encoding="utf-8")
+                [self.config["python_executable"], merger],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                shell=False,
+                encoding="utf-8",
+            )
             output_data, _ = p.communicate(input_data, timeout=10)
         except subprocess.TimeoutExpired:
             p.kill()
             raise
         assert p.returncode == 0, "Parser script returned nonzero exit code"
         merged_issue = json.loads(output_data)
-        assert isinstance(merged_issue, dict), "Wrong type '%s' for merger output" % (str(type(merged_issue)))
+        assert isinstance(merged_issue, dict), "Wrong type '%s' for merger output" % (
+            str(type(merged_issue))
+        )
         self.validate_issue(merged_issue)
-        assert merged_issue["template"] == template, \
-                "Template name '%s' does not match for merged issue" % merged_issue["template"]
+        assert merged_issue["template"] == template, (
+            "Template name '%s' does not match for merged issue"
+            % merged_issue["template"]
+        )
         return merged_issue
 
     # Run all needed merger scripts until there are no duplicated issues.
     def merge_duplicated_issues(self, issues):
-        templates = sorted(set(issue["template"] for issue in issues if issue["template"] != "manual"))
+        templates = sorted(
+            set(issue["template"] for issue in issues if issue["template"] != "manual")
+        )
         merged = [
-            self.run_merger(template, [issue for issue in issues if issue["template"] == template])
+            self.run_merger(
+                template, [issue for issue in issues if issue["template"] == template]
+            )
             for template in templates
         ]
         merged.extend(issue for issue in issues if issue["template"] == "manual")
@@ -1054,7 +1166,6 @@ class MagentaReporter:
     # Parse all files in a given directory and produce a report.
     # The files must be named after the tools (for example nmap.*).
     def process_files(self, pathname, metadata=DEFAULT_METADATA):
-
         # Ensure the metadata is valid.
         metadata = self.parse_metadata(metadata)
 
@@ -1099,28 +1210,35 @@ class MagentaReporter:
 
     # Export a generated report as an Obsidian vault.
     def export_as_obsidian(self, report, pathname, exist_ok=False):
-
         # Create the output directory structure.
         os.makedirs(pathname, exist_ok=exist_ok)
 
         # Create the Obsidian metadata.
         os.makedirs(os.path.join(pathname, ".obsidian"), exist_ok=exist_ok)
-        with open(os.path.join(pathname, ".obsidian", "app.json"), "w", encoding="utf-8") as fd:
+        with open(
+            os.path.join(pathname, ".obsidian", "app.json"), "w", encoding="utf-8"
+        ) as fd:
             fd.write('{\n"showInlineTitle": false\n}')
 
-        # Save the Magenta metadata. This won't be used by Obsidian at all,
-        # but it's good for debugging. I may remove it in future versions.
+        # Save the Magenta metadata. This won't be used by Obsidian at all,
+        # but it's good for debugging. I may remove it in future versions.
         os.makedirs(os.path.join(pathname, ".magenta"), exist_ok=exist_ok)
-        with open(os.path.join(pathname, ".magenta", "metadata.json"), "w", encoding="utf-8") as fd:
+        with open(
+            os.path.join(pathname, ".magenta", "metadata.json"), "w", encoding="utf-8"
+        ) as fd:
             chart = report["metadata"]["chart"]
             try:
                 del report["metadata"]["chart"]
                 json.dump(report["metadata"], fd, sort_keys=True, indent=4)
             finally:
                 report["metadata"]["chart"] = chart
-        with open(os.path.join(pathname, ".magenta", "issues.json"), "w", encoding="utf-8") as fd:
+        with open(
+            os.path.join(pathname, ".magenta", "issues.json"), "w", encoding="utf-8"
+        ) as fd:
             json.dump(report["issues"], fd, sort_keys=True, indent=4)
-        with open(os.path.join(pathname, ".magenta", "sections.json"), "w", encoding="utf-8") as fd:
+        with open(
+            os.path.join(pathname, ".magenta", "sections.json"), "w", encoding="utf-8"
+        ) as fd:
             json.dump(report["sections"], fd, sort_keys=True, indent=4)
 
         # Create a .gitignore file to ignore common useless files.
@@ -1143,10 +1261,18 @@ class MagentaReporter:
                 rendered = sections["rendered_" + name]
                 subindex = 0
                 for template, text in rendered:
-                    with open(os.path.join(subdir, "%d-%s.md" % (subindex, template)), "w", encoding="utf-8") as fd:
+                    with open(
+                        os.path.join(subdir, "%d-%s.md" % (subindex, template)),
+                        "w",
+                        encoding="utf-8",
+                    ) as fd:
                         fd.write(text)
                     subindex += 1
             else:
-                with open(os.path.join(pathname, "%d-%s.md" % (index, name)), "w", encoding="utf-8") as fd:
+                with open(
+                    os.path.join(pathname, "%d-%s.md" % (index, name)),
+                    "w",
+                    encoding="utf-8",
+                ) as fd:
                     fd.write(sections[name])
             index += 1

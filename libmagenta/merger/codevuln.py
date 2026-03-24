@@ -1,12 +1,11 @@
 #!/usr/bin/python3
 
-from . import *
+from . import Merger
+
 
 # Generic issue merger for all source code auditing vulnerabilities.
 class CodeVulnMerger(Merger):
-
     def do_code_cleanup(self, code):
-
         # This was my original implementation, I'm only leaving it here
         # as testament to my hubris. Was I really so naive to think I could
         # solve this with three measly lines of code? Let it be a lesson.
@@ -27,11 +26,9 @@ class CodeVulnMerger(Merger):
         # Now we process each "key" in order, to ensure our results array is sorted.
         results = []
         for key in unique_keys:
-
             # We need to go through every instance of the issue, since they're
             # not sorted and we can't just put them in a dictionary.
             for item in code:
-
                 # Ignore all instances where our "key" doesn't match.
                 if key != (item["file"], item["line"]):
                     continue
@@ -43,7 +40,6 @@ class CodeVulnMerger(Merger):
                 # Now comes the hairy part, we need to compare the traces.
                 found = False
                 for old_item in results:
-
                     # As before, skip objects not matching our "key".
                     if key != (old_item["file"], old_item["line"]):
                         continue
@@ -60,7 +56,7 @@ class CodeVulnMerger(Merger):
                         old_item["trace"] = item["trace"]
                         found = True
                         break
-                    
+
                     # At this point we should not have an identical trace.
                     # The differences should be more subtle.
                     assert item["trace"] != old_item["trace"], "Internal error"
@@ -83,7 +79,6 @@ class CodeVulnMerger(Merger):
 
                         # The old one does not have highlights.
                         if "highlight" not in t_old:
-
                             # The new one has highlights, let's use it.
                             if "highlight" in t_new:
                                 st_merged.append(t_new)
@@ -94,10 +89,12 @@ class CodeVulnMerger(Merger):
 
                         # The old one has highlights, let's see what happens to the new one.
                         else:
-
                             # The new one also has highlights but they don't match.
                             # This makes it a new path, so we cannot merge them.
-                            if "highlight" in t_new and t_old["highlight"] != t_new["highlight"]:
+                            if (
+                                "highlight" in t_new
+                                and t_old["highlight"] != t_new["highlight"]
+                            ):
                                 cannot_merge = True
                                 break
 

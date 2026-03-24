@@ -15,6 +15,8 @@ IANA_DESCRIPTIONS_PORTS = {}
 IANA_DESCRIPTIONS_NAMES = {}
 HTTP_DESC = None
 HTTP_ALT_DESC = None
+
+
 def parse_iana_descriptions(jsonObj):
     global IANA_DESCRIPTIONS_FULL
     global IANA_DESCRIPTIONS_PORTS
@@ -32,6 +34,8 @@ def parse_iana_descriptions(jsonObj):
             IANA_DESCRIPTIONS_PORTS[(n, po)] = d
         if n:
             IANA_DESCRIPTIONS_NAMES[n] = d
+
+
 def get_iana_description(name, port, proto):
     port = str(port)
     desc = IANA_DESCRIPTIONS_FULL.get((name, port, proto), None)
@@ -42,6 +46,8 @@ def get_iana_description(name, port, proto):
             if not desc:
                 desc = name
     return desc
+
+
 try:
     with open(os.path.join(os.path.dirname(__file__), "iana-descriptions.json")) as fd:
         parse_iana_descriptions(json.load(fd))
@@ -49,6 +55,7 @@ try:
     HTTP_ALT_DESC = get_iana_description("http-alt", 8080, "tcp")
 except Exception:
     traceback.print_exc()
+
 
 # This function parses a single host from the Nmap output.
 def parse_host(nmap_report, nmap_host):
@@ -72,26 +79,184 @@ def parse_host(nmap_report, nmap_host):
     services = []
     for srv in nmap_host.services:
         m = {}
-        if srv.port: m["port"] = srv.port
-        if srv.protocol: m["protocol"] = srv.protocol
-        if srv.tunnel: m["ssl"] = (srv.tunnel == 'ssl')
-        if srv.state: m["state"] = srv.state
-        if srv.service and srv.service != "unknown": m["service"] = srv.service
-        if srv.cpelist: m["cpe"] = [cpe.cpestring for cpe in srv.cpelist]
+        if srv.port:
+            m["port"] = srv.port
+        if srv.protocol:
+            m["protocol"] = srv.protocol
+        if srv.tunnel:
+            m["ssl"] = srv.tunnel == "ssl"
+        if srv.state:
+            m["state"] = srv.state
+        if srv.service and srv.service != "unknown":
+            m["service"] = srv.service
+        if srv.cpelist:
+            m["cpe"] = [cpe.cpestring for cpe in srv.cpelist]
         services.append(m)
 
     # Add the scanned ports.
-    if services: host["services"] = services
+    if services:
+        host["services"] = services
 
     # Return the scanned host.
     return host
 
-# Look for vulnerabilities in the Nmap scan output.
-TLS_IANA = ['3par-mgmt-ssl', 'amqps', 'amt-redir-tls', 'amt-soap-https', 'appserv-https', 'armcenterhttps', 'asap-sctp-tls', 'asap-tcp-tls', 'babel-dtls', 'bsfsvr-zn-ssl', 'can-ferret-ssl', 'can-nds-ssl', 'caspssl', 'coaps', 'commtact-https', 'compaq-https', 'cops-tls', 'corba-iiop-ssl', 'csvr-sslproxy', 'davsrcs', 'ddm-ssl', 'diameters', 'dicom-tls', 'docker-s', 'domain-s', 'ehs-ssl', 'enpp', 'enrp-sctp-tls', 'ethernet-ip-s', 'etlservicemgr', 'ftps', 'ftps-data', 'giop-ssl', 'gre-udp-dtls', 'hassle', 'hncp-dtls-port', 'https', 'https-alt', 'https-proxy', 'https-wmap', 'iadt-tls', 'ibm-diradm-ssl', 'ice-slocation', 'ice-srouter', 'icpps', 'ieee-mms-ssl', 'imaps', 'imqstomps', 'imqtunnels', 'inetfs', 'initlsmsad', 'intrepid-ssl', 'ipfixs', 'ipps', 'ircs-u', 'iss-mgmt-ssl', 'jboss-iiop-ssl', 'jt400-ssl', 'ldaps', 'linktest-s', 'llsurfup-https', 'lorica-in-sec', 'lorica-out-sec', 'mipv6tls', 'mpls-udp-dtls', 'msft-gc-ssl', 'netconf-ch-ssh', 'netconf-ch-tls', 'netconf-ssh', 'netconf-tls', 'netconfsoaphttp', 'networklenss', 'njenet-ssl', 'nntps', 'nsiiops', 'odette-ftps', 'onep-tls', 'oob-ws-https', 'opcua-tls', 'oracleas-https', 'orbix-cfg-ssl', 'orbix-loc-ssl', 'pcsync-https', 'plysrv-https', 'pon-ictp', 'pop3s', 'pt-tls', 'qmtps', 'radsec', 'restconf-ch-tls', 'rets-ssl', 'rid', 'rpki-rtr-tls', 'saphostctrls', 'sdo-ssh', 'sdo-tls', 'seclayer-tls', 'secure-ts', 'sips', 'sitewatch-s', 'smartcard-tls', 'snif', 'snmpdtls', 'snmpdtls-trap', 'snmpssh', 'snmpssh-trap', 'snmptls', 'snmptls-trap', 'spss', 'sqlexec-ssl', 'ssh', 'ssh-mgmt', 'sshell', 'sslp', 'ssm-cssps', 'ssm-els', 'ssslic-mgr', 'ssslog-mgr', 'stun-behaviors', 'stuns', 'submissions', 'sun-sr-https', 'sun-user-https', 'sunwebadmins', 'suucp', 'synapse-nhttps', 'syncserverssl', 'syslog-tls', 'telnets', 'tftps', 'tl1-raw-ssl', 'tl1-ssh', 'topflow-ssl', 'ttc-ssl', 'tungsten-https', 'turns', 'vipera-ssl', 'vt-ssl', 'wap-push-https', 'wbem-exp-https', 'wbem-https', 'wsm-server-ssl', 'wsmans', 'wso2esb-console', 'xnm-ssl', 'xtlserv', 'xtrms', 'z-wave-s']
-def get_open_plaintext_ports(host):
 
+# Look for vulnerabilities in the Nmap scan output.
+TLS_IANA = [
+    "3par-mgmt-ssl",
+    "amqps",
+    "amt-redir-tls",
+    "amt-soap-https",
+    "appserv-https",
+    "armcenterhttps",
+    "asap-sctp-tls",
+    "asap-tcp-tls",
+    "babel-dtls",
+    "bsfsvr-zn-ssl",
+    "can-ferret-ssl",
+    "can-nds-ssl",
+    "caspssl",
+    "coaps",
+    "commtact-https",
+    "compaq-https",
+    "cops-tls",
+    "corba-iiop-ssl",
+    "csvr-sslproxy",
+    "davsrcs",
+    "ddm-ssl",
+    "diameters",
+    "dicom-tls",
+    "docker-s",
+    "domain-s",
+    "ehs-ssl",
+    "enpp",
+    "enrp-sctp-tls",
+    "ethernet-ip-s",
+    "etlservicemgr",
+    "ftps",
+    "ftps-data",
+    "giop-ssl",
+    "gre-udp-dtls",
+    "hassle",
+    "hncp-dtls-port",
+    "https",
+    "https-alt",
+    "https-proxy",
+    "https-wmap",
+    "iadt-tls",
+    "ibm-diradm-ssl",
+    "ice-slocation",
+    "ice-srouter",
+    "icpps",
+    "ieee-mms-ssl",
+    "imaps",
+    "imqstomps",
+    "imqtunnels",
+    "inetfs",
+    "initlsmsad",
+    "intrepid-ssl",
+    "ipfixs",
+    "ipps",
+    "ircs-u",
+    "iss-mgmt-ssl",
+    "jboss-iiop-ssl",
+    "jt400-ssl",
+    "ldaps",
+    "linktest-s",
+    "llsurfup-https",
+    "lorica-in-sec",
+    "lorica-out-sec",
+    "mipv6tls",
+    "mpls-udp-dtls",
+    "msft-gc-ssl",
+    "netconf-ch-ssh",
+    "netconf-ch-tls",
+    "netconf-ssh",
+    "netconf-tls",
+    "netconfsoaphttp",
+    "networklenss",
+    "njenet-ssl",
+    "nntps",
+    "nsiiops",
+    "odette-ftps",
+    "onep-tls",
+    "oob-ws-https",
+    "opcua-tls",
+    "oracleas-https",
+    "orbix-cfg-ssl",
+    "orbix-loc-ssl",
+    "pcsync-https",
+    "plysrv-https",
+    "pon-ictp",
+    "pop3s",
+    "pt-tls",
+    "qmtps",
+    "radsec",
+    "restconf-ch-tls",
+    "rets-ssl",
+    "rid",
+    "rpki-rtr-tls",
+    "saphostctrls",
+    "sdo-ssh",
+    "sdo-tls",
+    "seclayer-tls",
+    "secure-ts",
+    "sips",
+    "sitewatch-s",
+    "smartcard-tls",
+    "snif",
+    "snmpdtls",
+    "snmpdtls-trap",
+    "snmpssh",
+    "snmpssh-trap",
+    "snmptls",
+    "snmptls-trap",
+    "spss",
+    "sqlexec-ssl",
+    "ssh",
+    "ssh-mgmt",
+    "sshell",
+    "sslp",
+    "ssm-cssps",
+    "ssm-els",
+    "ssslic-mgr",
+    "ssslog-mgr",
+    "stun-behaviors",
+    "stuns",
+    "submissions",
+    "sun-sr-https",
+    "sun-user-https",
+    "sunwebadmins",
+    "suucp",
+    "synapse-nhttps",
+    "syncserverssl",
+    "syslog-tls",
+    "telnets",
+    "tftps",
+    "tl1-raw-ssl",
+    "tl1-ssh",
+    "topflow-ssl",
+    "ttc-ssl",
+    "tungsten-https",
+    "turns",
+    "vipera-ssl",
+    "vt-ssl",
+    "wap-push-https",
+    "wbem-exp-https",
+    "wbem-https",
+    "wsm-server-ssl",
+    "wsmans",
+    "wso2esb-console",
+    "xnm-ssl",
+    "xtlserv",
+    "xtrms",
+    "z-wave-s",
+]
+
+
+def get_open_plaintext_ports(host):
     # Report open ports that do not use SSL.
-    # 
+    #
     # This is tricky since the scan may have been run without service detection. My plan is:
     #
     #   1) if there is at least one "ssl" property, we can assume detection was performed.
@@ -116,7 +281,7 @@ def get_open_plaintext_ports(host):
             else:
                 try:
                     name = socket.getservbyport(int(srv["port"]), srv["protocol"])
-                except:
+                except Exception:
                     continue
             if (has_sv and "ssl" not in srv) or (not has_sv and name not in TLS_IANA):
                 desc = get_iana_description(name, srv["port"], srv["protocol"])
@@ -128,6 +293,7 @@ def get_open_plaintext_ports(host):
                     ports.append((host["ipv6"], srv["port"], srv["protocol"], desc))
     return ports
 
+
 # Determine if http is available in this host.
 def has_http(host):
     services = host.get("services", [])
@@ -135,9 +301,13 @@ def has_http(host):
         for srv in services:
             if srv.get("service", None) == "http" or srv["port"] == 80:
                 return True
-            if srv.get("service", None) in ("http-alt", "http-proxy") or srv["port"] == 8080:
+            if (
+                srv.get("service", None) in ("http-alt", "http-proxy")
+                or srv["port"] == 8080
+            ):
                 return True
     return False
+
 
 # Determine if https is available in this host.
 def has_https(host):
@@ -146,13 +316,16 @@ def has_https(host):
         for srv in services:
             if srv.get("service", None) == "https" or srv["port"] == 443:
                 return True
-            if srv.get("service", None) == ("https-alt", "https-proxy") or srv["port"] == 8443:
+            if (
+                srv.get("service", None) == ("https-alt", "https-proxy")
+                or srv["port"] == 8443
+            ):
                 return True
     return False
 
+
 # Entry point.
 def main():
-
     # Parse the Nmap report using libnmap.
     # https://libnmap.readthedocs.io/en/latest/index.html
     nmap_report = NmapParser.parse(sys.stdin.read())
@@ -226,6 +399,7 @@ def main():
 
     # Convert the objects array to JSON and send it over stdout.
     json.dump(vulns, sys.stdout)
+
 
 if __name__ == "__main__":
     main()

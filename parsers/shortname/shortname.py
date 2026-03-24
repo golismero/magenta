@@ -1,15 +1,14 @@
 #!/usr/bin/python3
 
 import json
-import re
 import sys
 
 DEBUG = False
-#DEBUG = True   # Uncomment to debug.
+# DEBUG = True   # Uncomment to debug.
+
 
 # Entry point.
 def main():
-
     # We're going to preserve some of the input file for the description of the issue.
     output = []
 
@@ -40,7 +39,9 @@ def main():
         sys.stderr.write("DEBUG: %s" % line)
     assert line.startswith("|_ Result: "), "ERROR: Failed to parse input file"
     if not line[11:].startswith("Vulnerable!"):
-        sys.stderr.write("Ignoring input file due to the target not being vulnerable.\n")
+        sys.stderr.write(
+            "Ignoring input file due to the target not being vulnerable.\n"
+        )
         sys.stdout.write("[]")
         return
     output.append(line)
@@ -70,6 +71,7 @@ def main():
         ],
     }
     json.dump([issue], sys.stdout)
+
 
 if __name__ == "__main__":
     main()

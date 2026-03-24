@@ -11,17 +11,20 @@ import json
 # Hydra v9.2 run at 2023-06-30 10:33:37 on localhost ftp (hydra -l username -p password -o private/test.hydra ftp://localhost)
 [21][ftp] host: localhost   login: username   password: password
 """
-re_start = re.compile(r"^# Hydra v[0-9]+\.[0-9]+ run at ([^ ]+ [^ ]+) on ([^ ]+) ([^ ]+) \(([^\)]+)\)$")
-re_result = re.compile(r"^\[([0-9]+)\]\[([^\]]+)\] host: ([^ ]+) +login: ([^ ]+) +password: (.+)$")
+re_start = re.compile(
+    r"^# Hydra v[0-9]+\.[0-9]+ run at ([^ ]+ [^ ]+) on ([^ ]+) ([^ ]+) \(([^\)]+)\)$"
+)
+re_result = re.compile(
+    r"^\[([0-9]+)\]\[([^\]]+)\] host: ([^ ]+) +login: ([^ ]+) +password: (.+)$"
+)
 fmt_timestamp = "%Y-%m-%d %H:%M:%S"
+
 
 # Importer function for text files.
 def import_hydra_textfile(fd):
-    did_warn_0 = False
     did_warn_1 = False
     did_warn_2 = False
     did_warn_3 = False
-    did_warn_4 = False
     output = []
     current = None
     credentials = set()
@@ -46,13 +49,17 @@ def import_hydra_textfile(fd):
         m = re_result.match(line)
         if m:
             if line.count("password: ") != 1 and not did_warn_2:
-                sys.stderr.write("WARNING: parser found line(s) it could not parse, results may be missing or wrong\n")
+                sys.stderr.write(
+                    "WARNING: parser found line(s) it could not parse, results may be missing or wrong\n"
+                )
                 did_warn_2 = True
             port, service, hostname, login, password = m.groups()
             t = (hostname, port, service, login, password)
             if t in seen:
                 if not did_warn_3:
-                    sys.stderr.write("WARNING: parser found duplicated entries, results may be missing or wrong\n")
+                    sys.stderr.write(
+                        "WARNING: parser found duplicated entries, results may be missing or wrong\n"
+                    )
                     did_warn_3 = True
                 continue
             seen.add(t)
@@ -61,7 +68,9 @@ def import_hydra_textfile(fd):
 
         # Error while parsing.
         if not did_warn_1:
-            sys.stderr.write("WARNING: parser found line(s) it could not parse, results may be missing or wrong\n")
+            sys.stderr.write(
+                "WARNING: parser found line(s) it could not parse, results may be missing or wrong\n"
+            )
             did_warn_1 = True
 
     # Return the output array.
@@ -70,11 +79,12 @@ def import_hydra_textfile(fd):
         output.append(current)
     return output
 
+
 # Helper function.
 def _finish_issue(current, credentials):
     affects = set()
     current["credentials"] = []
-    for (hostname, port, service, login, password) in sorted(credentials):
+    for hostname, port, service, login, password in sorted(credentials):
         affects.add("%s:%s (%s)" % (hostname, port, service))
         cred = {
             "host": hostname,
@@ -87,9 +97,9 @@ def _finish_issue(current, credentials):
     current["severity"] = "critical"
     current["affects"] = sorted(affects)
 
+
 # Entry point.
 if __name__ == "__main__":
-
     # Parse the input from stdin and generate an output array.
     output = import_hydra_textfile(sys.stdin)
 

@@ -1,13 +1,10 @@
 #!/usr/bin/python3
 
-import codecs
-import csv
 import json
-import io
-import re
 import sys
 
 import yaml
+
 
 def parse_raw_input(raw_input):
     if raw_input.startswith("{"):
@@ -16,8 +13,10 @@ def parse_raw_input(raw_input):
         return parse_html_input(raw_input)
     return parse_yaml_input(raw_input)
 
+
 def parse_yaml_input(raw_input):
     return yaml.safe_load(raw_input)
+
 
 def parse_json_input(raw_input):
     json_input = json.loads(raw_input)
@@ -34,12 +33,14 @@ def parse_json_input(raw_input):
                 converted[severity] = []
             converted[severity].append(obj)
         json_input = converted
-    elif "diagnostics" in json_input:   # rdjson
+    elif "diagnostics" in json_input:  # rdjson
         raise NotImplementedError("RDJSON format not yet supported")
     return json_input
 
+
 def parse_html_input(raw_input):
     raise NotImplementedError("HTML format not yet supported")
+
 
 # XXX TODO try to add the source and sink as trace.
 # I'm not 100% sure how to interpret the data from the files right now,
@@ -80,19 +81,23 @@ def main():
                 start = None
                 end = None
             if code is not None and start is not None and end is not None:
-                trace = [{
-                    "file": filename,
-                    "language": template_name[:template_name.find("_")],
-                    "source": [{
-                        "line": line,
-                        "text": code,
-                    }],
-                    "highlight": {
-                        "line": line,
-                        "start": start,
-                        "end": end,
-                    },
-                }]
+                trace = [
+                    {
+                        "file": filename,
+                        "language": template_name[: template_name.find("_")],
+                        "source": [
+                            {
+                                "line": line,
+                                "text": code,
+                            }
+                        ],
+                        "highlight": {
+                            "line": line,
+                            "start": start,
+                            "end": end,
+                        },
+                    }
+                ]
             else:
                 trace = None
             issue = {
@@ -100,10 +105,12 @@ def main():
                 "tools": ["bearer"],
                 "severity": severity.lower(),
                 "affects": ["%s:%s" % (filename, line)],
-                "code": [{
-                    "file": filename,
-                    "line": line,
-                }],
+                "code": [
+                    {
+                        "file": filename,
+                        "line": line,
+                    }
+                ],
             }
             if trace:
                 issue["code"][0]["trace"] = trace
@@ -114,6 +121,7 @@ def main():
             json_output.append(issue)
 
     json.dump(json_output, sys.stdout)
+
 
 if __name__ == "__main__":
     main()

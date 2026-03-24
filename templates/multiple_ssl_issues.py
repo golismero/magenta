@@ -6,8 +6,8 @@ import sys
 sys.path.insert(1, os.environ["MAGENTA_HOME"])
 from libmagenta.merger import Merger
 
-class SSLMerger(Merger):
 
+class SSLMerger(Merger):
     def do_hosts_cleanup(self, merged_hosts):
         hostmap = {}
         for host in merged_hosts:
@@ -21,6 +21,7 @@ class SSLMerger(Merger):
         for key in hostnames:
             hostlist.extend(hostmap[key])
         return hostlist
+
 
 if __name__ == "__main__":
     SSLMerger().run()

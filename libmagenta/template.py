@@ -17,25 +17,25 @@ from jinja2.sandbox import ImmutableSandboxedEnvironment
 from jinja2.compiler import CodeGenerator
 from jinja2.utils import pass_context  # jinja2 3.x
 
+
 class LocalOverridingCodeGenerator(CodeGenerator):
     def visit_Template(self, *args, **kwargs):
-        super(LocalOverridingCodeGenerator, self).visit_Template(*args,
-                                                                 **kwargs)
-        overrides = getattr(self.environment, '_codegen_overrides', {})
+        super(LocalOverridingCodeGenerator, self).visit_Template(*args, **kwargs)
+        overrides = getattr(self.environment, "_codegen_overrides", {})
 
         if overrides:
-            self.writeline('')
+            self.writeline("")
 
         for name, override in overrides.items():
-            self.writeline('{} = {}'.format(name, override))
+            self.writeline("{} = {}".format(name, override))
 
 
 class DynAutoEscapeEnvironment(ImmutableSandboxedEnvironment):
     code_generator_class = LocalOverridingCodeGenerator
 
     def __init__(self, *args, **kwargs):
-        escape_func = kwargs.pop('escape_func', None)
-        markup_class = kwargs.pop('markup_class', None)
+        escape_func = kwargs.pop("escape_func", None)
+        markup_class = kwargs.pop("markup_class", None)
 
         super(DynAutoEscapeEnvironment, self).__init__(*args, **kwargs)
 
@@ -48,10 +48,10 @@ class DynAutoEscapeEnvironment(ImmutableSandboxedEnvironment):
         # finalize in a contextfunction
         if self.finalize:
             if not (
-                getattr(self.finalize, 'contextfunction', False)  # jinja2 2.x
-                or getattr(self.finalize, 'jinja_pass_arg', False)  # jinja2 3.x
+                getattr(self.finalize, "contextfunction", False)  # jinja2 2.x
+                or getattr(self.finalize, "jinja_pass_arg", False)  # jinja2 3.x
             ):
-                _finalize = getattr(self, 'finalize')
+                _finalize = getattr(self, "finalize")
                 self.finalize = lambda _, v: _finalize(v)
         else:
             self.finalize = lambda _, v: v
@@ -60,20 +60,22 @@ class DynAutoEscapeEnvironment(ImmutableSandboxedEnvironment):
         self._codegen_overrides = {}
 
         if escape_func:
-            self._codegen_overrides['escape'] = 'environment.escape_func'
+            self._codegen_overrides["escape"] = "environment.escape_func"
             self.escape_func = escape_func
-            self.filters['e'] = escape_func
-            self.filters['escape'] = escape_func
+            self.filters["e"] = escape_func
+            self.filters["escape"] = escape_func
 
         if markup_class:
-            self._codegen_overrides['markup'] = 'environment.markup_class'
+            self._codegen_overrides["markup"] = "environment.markup_class"
             self.markup_class = markup_class
 
     # Jinja2 hack to make relative imports possible.
     # https://stackoverflow.com/a/8530761/426293
     """Override join_path() to enable relative template paths."""
+
     def join_path(self, template, parent):
         return posixpath.join(posixpath.dirname(parent), template)
+
 
 def markup_escape_func(f):
     @wraps(f)
@@ -81,7 +83,9 @@ def markup_escape_func(f):
         if isinstance(v, Markup):
             return v
         return Markup(f(v, **kw))
+
     return _
+
 
 # Helper function to convert non-ASCII characters to HTML entities.
 @markup_escape_func
@@ -100,17 +104,20 @@ def escapehtml(v):
             a.append(c)
     return "".join(a)
 
+
 # Helper function to escape Markdown characters from strings.
 @markup_escape_func
 def escapemd(v):
     v = str(v)
     v = escapehtml(v)
-    v = v.replace('\\', '\\\\')     # must be first
-    for char in r"_*[]()~`>#+-=|{}.!": # https://github.com/go-telegram/bot/blob/main/common.go#L12C23-L12C43
-        v = v.replace(char, '\\' + char)
-    v = v.replace('\r', '')
-    v = v.replace('\n', '')
-    v = v.replace('\t', '    ')     # not sure about this one
+    v = v.replace("\\", "\\\\")  # must be first
+    for char in (
+        r"_*[]()~`>#+-=|{}.!"
+    ):  # https://github.com/go-telegram/bot/blob/main/common.go#L12C23-L12C43
+        v = v.replace(char, "\\" + char)
+    v = v.replace("\r", "")
+    v = v.replace("\n", "")
+    v = v.replace("\t", "    ")  # not sure about this one
     """
     p = -1
     while True:
@@ -124,6 +131,7 @@ def escapemd(v):
     """
     return v
 
+
 # Helper function to render HTTP requests and responses in Markdown.
 # Automatically truncates the body leaving only the relevant parts.
 #
@@ -132,7 +140,6 @@ def escapemd(v):
 #
 @markup_escape_func
 def http2md(v, hfind=[], find=[], full=False, headersonly=False):
-
     # Accepts both strings and list of strings.
     if hfind and isinstance(hfind, str):
         hfind = [hfind]
@@ -146,10 +153,10 @@ def http2md(v, hfind=[], find=[], full=False, headersonly=False):
         headers, body = v.split("\r\n\r\n", 1)
     elif "\n\n" in v:
         headers, body = v.split("\n\n", 1)
-    elif "\r\r" in v:   # possible according to the RFC, but haven't seen it in real life
+    elif "\r\r" in v:  # possible according to the RFC, but haven't seen it in real life
         headers, body = v.split("\r\r", 1)
     else:
-        #assert False, v     # XXX DEBUG
+        # assert False, v     # XXX DEBUG
         headers = v
         body = ""
 
@@ -203,7 +210,9 @@ def http2md(v, hfind=[], find=[], full=False, headersonly=False):
                                 new_line = line[p:q]
                                 if p > 0 and not new_line.strip().startswith("[...]"):
                                     new_line = "[...]" + new_line
-                                if q < len(line) and not new_line.strip().endswith("[...]"):
+                                if q < len(line) and not new_line.strip().endswith(
+                                    "[...]"
+                                ):
                                     new_line = new_line + "[...]"
                                 line = new_line
                         if skip:
@@ -240,9 +249,10 @@ def http2md(v, hfind=[], find=[], full=False, headersonly=False):
     if len(text) > 65536:
         text = "[... output truncated due to length ...]"
     text = escapehtml(text)
-    text = text.replace('`', '\\`')
+    text = text.replace("`", "\\`")
     text = "```\n" + text + "\n```\n"
     return text
+
 
 # Custom Jinja2 loader to fetch our templates.
 class CustomTemplateLoader(jinja2.BaseLoader):
@@ -263,7 +273,7 @@ class CustomTemplateLoader(jinja2.BaseLoader):
                     source = magenta.templates["main"][propname]
                 except KeyError:
                     raise jinja2.TemplateNotFound(template)
-            return source, template, lambda x=None:True
+            return source, template, lambda x=None: True
         except jinja2.TemplateNotFound:
             raise
         except Exception as e:

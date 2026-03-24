@@ -1,13 +1,11 @@
 #!/usr/bin/python3
 
-import csv
 import json
 import io
-import os.path
 import sys
-import traceback
 
 from lxml import etree
+
 
 def tag_to_str(element):
     source = "<" + element.tag
@@ -19,8 +17,8 @@ def tag_to_str(element):
         source += "/>"
     return source
 
-def main():
 
+def main():
     # Load the input data as XML. For now (and the foreseeable future) this will be the only supported format.
     # Parsing the text output would be way too complicated and I don't really see a good use case for it.
     parser = etree.XMLParser(
@@ -31,7 +29,7 @@ def main():
         remove_pis=True,
         resolve_entities=False,
         huge_tree=False,
-        strip_cdata=False
+        strip_cdata=False,
     )
     fd = io.BytesIO(sys.stdin.read().encode("utf-8"))
     tree = etree.parse(fd, parser=parser)
@@ -54,8 +52,8 @@ def main():
         severity = "low"
         bad_ciphers = []
         problems = {
-            "TLS1_2": "",   # assume is missing until seen
-            "TLS1_3": "",   # assume is missing until seen
+            "TLS1_2": "",  # assume is missing until seen
+            "TLS1_3": "",  # assume is missing until seen
         }
         for child in ssltest.getchildren():
             sslversion = child.attrib.get("sslversion", None)
@@ -77,7 +75,6 @@ def main():
             # This is the main use of the tool, since it's mostly focused around
             # listing ciphers rather than testing for vulnerabilities.
             if tag == "cipher":
-
                 # Version 1.x:
                 #   We need to add some logic here to determine whather or not each cipher
                 #   is vulnerable, and that should hopefully come from a file rather than
@@ -87,7 +84,10 @@ def main():
                 # Version 2.x:
                 #   This version supports the "strength" attribute, so we can at least use that.
                 #
-                if child.attrib.get("strength", "acceptable") not in ("strong", "acceptable"):
+                if child.attrib.get("strength", "acceptable") not in (
+                    "strong",
+                    "acceptable",
+                ):
                     obj = {
                         "cipher": child.attrib["cipher"],
                         "version": sslversion,
@@ -143,13 +143,17 @@ def main():
                             if severity == "low":
                                 severity = "medium"
                     elif subtag == "pk":
-                        if grandchild.attrib["error"] == "true":    # who the hell knows what this is supposed to mean
+                        if (
+                            grandchild.attrib["error"] == "true"
+                        ):  # who the hell knows what this is supposed to mean
                             problems["cert_chain_of_trust"] = ""
                             if severity == "low":
                                 severity = "medium"
             elif tag == "renegotiation":
                 if child.attrib["secure"] == "0":
-                    problems["secure_renego"] = ""      # not sure, may be secure_client_renego
+                    problems["secure_renego"] = (
+                        ""  # not sure, may be secure_client_renego
+                    )
                     if severity in ("low", "medium"):
                         severity = "high"
             elif tag == "heartbleed":
@@ -159,7 +163,7 @@ def main():
                         severity = "high"
             elif tag == "compression":
                 if child.attrib["supported"] == "1":
-                    pass    # no idea what the hell I'm supposed to do here
+                    pass  # no idea what the hell I'm supposed to do here
             elif tag == "fallback":
                 if child.attrib["supported"] == "0":
                     problems["fallback_SCSV"] = ""
@@ -183,10 +187,11 @@ def main():
         "tools": ["sslscan"],
         "severity": severity,
         "affects": sorted(set(h["host"] for h in hosts)),
-        "taxonomy": ["CWE-310"],    # XXX TODO use more specific CWE values
+        "taxonomy": ["CWE-310"],  # XXX TODO use more specific CWE values
         "hosts": hosts,
     }
     json.dump([obj], sys.stdout)
+
 
 if __name__ == "__main__":
     main()

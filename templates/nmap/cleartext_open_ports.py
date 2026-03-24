@@ -6,11 +6,11 @@ import sys
 sys.path.insert(1, os.environ["MAGENTA_HOME"])
 from libmagenta.merger import Merger
 
+
 # XXX FIXME
 # The implementation for this one is a bit dirty... it collects the ports
 # as a sorted list of tuples, then on cleanup converts the tuples to dicts.
 class CleartextOpenPortsMerger(Merger):
-
     def do_plaintext_ports_collect(self, merged_plaintext_ports, issue_plaintext_ports):
         for x in issue_plaintext_ports:
             port, proto = x["port"].split("/")
@@ -28,6 +28,7 @@ class CleartextOpenPortsMerger(Merger):
             }
             for x in plaintext_ports
         ]
+
 
 if __name__ == "__main__":
     CleartextOpenPortsMerger().run()
