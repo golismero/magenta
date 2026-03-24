@@ -7,11 +7,13 @@
 *.pyc
 .DS_Store
 .claudeignore
+.cursorignore
 .dockerignore
 .git
+.github
 .gitignore
 .magenta.cache
+.ruff_cache
+*.md
+*.webp
 Dockerfile
-README.md
-samples
-test
