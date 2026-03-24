@@ -50,7 +50,7 @@ Magenta supports internationalization, and some of the templates have been trans
 python3 magenta.py mis_ficheros_de_pentest/ -o informe.md -l es
 ```
 
-Magenta es mostly meant to be used as a starting point for a pentesting report, so being able to manually edit the text is always handy. That's why it also supports generating reports as Obsidian vaults, for easy editing:
+Magenta is mostly meant to be used as a starting point for a pentesting report, so being able to manually edit the text is always handy. That's why it also supports generating reports as Obsidian vaults, for easy editing:
 
 ```sh
 python3 magenta.py my_pentest_files/ -o obsidian_report/ -f obsidian
