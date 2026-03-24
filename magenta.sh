@@ -20,7 +20,7 @@ Arguments:
 Environment:
   LANG        Report language is derived from this (default: en)
 
-If a magenta.json5 or magenta.json file exists at the root of
+If a project.json5 or project.json file exists at the root of
 INPUT_DIR, it is automatically passed as report metadata.
 
 Examples:
@@ -55,10 +55,10 @@ output_name="$(basename "$output")"
 mkdir -p "$CACHE_DIR"
 
 metadata_args=""
-if [ -f "${input_dir}/magenta.json5" ]; then
-    metadata_args="-m /data/input/magenta.json5"
-elif [ -f "${input_dir}/magenta.json" ]; then
-    metadata_args="-m /data/input/magenta.json"
+if [ -f "${input_dir}/project.json5" ]; then
+    metadata_args="-m /data/input/project.json5"
+elif [ -f "${input_dir}/project.json" ]; then
+    metadata_args="-m /data/input/project.json"
 fi
 
 docker run --rm --read-only \

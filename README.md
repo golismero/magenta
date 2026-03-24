@@ -64,6 +64,47 @@ python3 magenta.py my_pentest_files/ -o data.json
 
 There's more info for developers below, but as a final user you don't need to worry about any of this.
 
+## Can I use it with Docker?
+
+Sure can! There's even a convenience script with a simplified CLI to do exactly this. It will take care of passing all the right command line options to Docker to bind mount the input and output directory.
+
+You don't even need to clone the repository for this - just drop the `magenta.sh` script anywhere where Docker is installed and it'll pull the latest image and run it for you.
+
+```bash
+wget https://raw.githubusercontent.com/golismero/magenta/refs/heads/main/magenta.sh
+chmod +x magenta.sh
+./magenta.sh --help
+```
+
+You should be seeing something like this:
+
+```
+Usage: magenta.sh INPUT_DIR OUTPUT
+
+Run Magenta in a Docker container to generate a security report.
+
+Arguments:
+  INPUT_DIR   Directory containing tool output files (nmap, nessus, etc.)
+  OUTPUT      Output file or directory. Format is determined by the path:
+                .md, .txt  → Markdown
+                .json, .js → JSON
+                path/      → Obsidian vault (trailing slash)
+
+Environment:
+  LANG        Report language is derived from this (default: en)
+
+If a project.json5 or project.json file exists at the root of
+INPUT_DIR, it is automatically passed as report metadata.
+
+Examples:
+  magenta.sh ./scans report.md
+  magenta.sh ./scans ./output/report.json
+  magenta.sh ./scans ./vault/
+  LANG=es magenta.sh ./scans informe.md
+```
+
+Easy peasy, lemon squeezy!
+
 ## How does it work?
 
 ***TL;DR:** *This is the stuff developers love. If you're a user you don't need to know any of this. ;)*
