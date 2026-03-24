@@ -7,6 +7,8 @@ Magenta Reporter takes the output files from commonly used penetration testing t
 
 ## How do I install it?
 
+For Docker use, jump ahead a bit - this stuff is about manual installs.
+
 Magenta works on any operating system, in principle, but has been tested mostly on Debian Linux and Mac OS X. The following instructions assume such an environment.
 
 The first step is to install Python. You can download it from here: https://www.python.org/downloads/
