@@ -51,9 +51,17 @@ def color_json(obj):
 
 @click.group(cls=DefaultGroup, default="report", default_if_no_args=True)
 @click.version_option("v%s.%s" % VERSION)
+@click.option(
+    "-c",
+    "--config",
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+    default=None,
+    help="Configuration file (JSON5). Defaults to built-in configuration.",
+)
 @click.pass_context
-def main(ctx):
-    pass
+def main(ctx, config):
+    ctx.ensure_object(dict)
+    ctx.obj["config"] = config
 
 
 @main.command()
@@ -92,7 +100,8 @@ def main(ctx):
     default=None,
     help="Report metadata (project information, rendering settings, etc.)",
 )
-def report(pathname, output, format, language, metadata):
+@click.pass_context
+def report(ctx, pathname, output, format, language, metadata):
     """Read all tool output files in the PATHNAME directory
     and generate a report from them.
 
@@ -135,7 +144,7 @@ def report(pathname, output, format, language, metadata):
         metadata = json5.load(metadata, allow_duplicate_keys=False)
 
     # Parse the files and generate the report.
-    magenta = MagentaReporter()
+    magenta = MagentaReporter(ctx.obj["config"])
     if (
         metadata is None
         or "language" not in metadata
@@ -180,7 +189,7 @@ def report(pathname, output, format, language, metadata):
 @click.pass_context
 def tools(ctx, language, status):
     "Show the list of supported tools and exit."
-    magenta = MagentaReporter()
+    magenta = MagentaReporter(ctx.obj["config"])
     magenta.set_language(language)
     if not magenta.parsers:
         print("No parsers found! Something is wrong with this installation of Magenta.")
@@ -216,7 +225,7 @@ def tools(ctx, language, status):
 @click.pass_context
 def languages(ctx):
     "Show the list of supported languages and exit."
-    magenta = MagentaReporter()
+    magenta = MagentaReporter(ctx.obj["config"])
 
     # Count how many templates we have per language.
     template_count = {}

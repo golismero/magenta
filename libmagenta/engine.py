@@ -116,6 +116,7 @@ class MagentaReporter:
         "type": "object",
         "properties": {
             "default_language": {"type": "string"},
+            "internal_cache": {"type": ["string", "null"]},
             "python_executable": {"type": "string"},
             "parsers_directory": {"type": "string"},
             "templates_directory": {"type": "string"},
@@ -246,7 +247,10 @@ class MagentaReporter:
         self.env = None
 
         # Load the file cache.
-        self.cache = FileCache(self.config.get("internal_cache", None))
+        cache_path = self.config.get("internal_cache", None)
+        if cache_path and not os.path.isabs(cache_path):
+            cache_path = os.path.join(self.home, cache_path)
+        self.cache = FileCache(cache_path)
 
         # Find the mergers. These don't depend on language.
         self.mergers = self._find_mergers()
