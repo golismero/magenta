@@ -27,7 +27,7 @@ Run this in your shell to look for all of the dependencies and install them:
 
 ```sh
 cd magenta
-for r in $(find . -name requirements.txt); do python3 -m pip install -r requirements.txt; done
+for r in $(find . -name requirements.txt); do python3 -m pip install -r $r; done
 ```
 
 ## How do I use it?
