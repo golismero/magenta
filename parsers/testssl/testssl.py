@@ -124,7 +124,7 @@ except Exception:
 # Additional reference links per vulnerability.
 additional_references = {
     "GREASE": ["https://www.ietf.org/archive/id/draft-ietf-tls-grease-01.txt"],
-    "OSCP_stapling": ["https://www.rfc-editor.org/rfc/rfc6066#section-8"],
+    "OCSP_stapling": ["https://www.rfc-editor.org/rfc/rfc6066#section-8"],
     "DNS_CAArecord": [
         "https://en.wikipedia.org/wiki/DNS_Certification_Authority_Authorization",
         "https://docs.digicert.com/en/certcentral/manage-certificates/dns-caa-resource-record-check.html",
@@ -170,12 +170,12 @@ additional_references = {
 
 # Additional taxonomy tags per vulnerability.
 additional_taxonomies = {
-    "OSCP_stapling": ["RFC 6066"],
+    "OCSP_stapling": ["RFC 6066"],
     "SSLv2": ["RFC 6176"],
     "SSLv3": ["RFC 7568"],
     "TLS1": ["RFC 8996"],
     "TLS1_1": ["RFC 8996"],
-    "HTST": ["RFC 6797"],
+    "HSTS": ["RFC 6797"],
     "RC4": ["RFC 7465"],
     "winshock": ["MS14-066"],
 }
@@ -215,6 +215,8 @@ for key, results in items.items():
     rating_spec = None
     problems = {}
     cipher_order = {}
+    beast_severity = None
+    beast_cbc_ciphers = {}
     for item in results:
         # We'll use the testssl.sh ID as additional properties we can look up later from the templates.
         # This should work nicely since we know for a fact they cannot collide.
@@ -294,8 +296,32 @@ for key, results in items.items():
             continue
 
         # Skip some redundant items.
-        if id.startswith("BEAST_") or id.startswith("cert_notAfter"):
+        if id.startswith("cert_notAfter"):
             continue
+
+        # Remember the overall BEAST severity so we can grade the per-cipher
+        # entries below. testssl hardcodes the per-protocol BEAST_CBC_<proto>
+        # findings to MEDIUM, but the overall BEAST is LOW when higher protocols
+        # offer mitigation -- we want the cipher entries to reflect that.
+        if id == "BEAST":
+            beast_severity = item["severity"].lower()
+
+        # Buffer the per-protocol BEAST CBC cipher lists. We emit them as
+        # bad_ciphers entries after this host's loop completes, once we know
+        # the overall BEAST severity (which may arrive before or after).
+        if id.startswith("BEAST_CBC_"):
+            proto_to_version = {"SSL3": "SSLv3", "TLS1": "TLSv1.0"}
+            version = proto_to_version.get(id[len("BEAST_CBC_"):])
+            if version is not None:
+                ciphers = [c.strip() for c in item.get("finding", "").split() if c.strip()]
+                if ciphers:
+                    beast_cbc_ciphers.setdefault(version, []).extend(ciphers)
+            continue
+
+        # Normalize per-protocol cipher_order findings (e.g. `cipher_order-tls1_2`)
+        # to the generic `cipher_order` tag so the template can render them.
+        if id.startswith("cipher_order-"):
+            id = "cipher_order"
 
         # Add CVE and CWE IDs.
         cve = item.get("cve", "")
@@ -357,6 +383,29 @@ for key, results in items.items():
                 problems[tag] += " " + item["finding"]
             else:
                 problems[tag] = item["finding"]
+
+    # Convert buffered BEAST_CBC_<proto> cipher lists into bad_ciphers entries.
+    # Use the overall BEAST severity (low when higher protocols mitigate, medium
+    # otherwise). Default to medium if the overall finding was absent -- in normal
+    # testssl operation it always accompanies the per-protocol findings.
+    if beast_cbc_ciphers:
+        beast_sev = beast_severity or "medium"
+        seen = {(b["version"], b["cipher"]) for b in bad_ciphers}
+        for version, ciphers in beast_cbc_ciphers.items():
+            for cipher in ciphers:
+                if (version, cipher) in seen:
+                    continue
+                if version in cipher_order and cipher == cipher_order[version][0]:
+                    status = "preferred"
+                else:
+                    status = "available"
+                bad_ciphers.append({
+                    "version": version,
+                    "cipher": cipher,
+                    "severity": beast_sev,
+                    "status": status,
+                })
+                seen.add((version, cipher))
 
     # If the issue is empty, this means testssl.sh did not find anything to report on this host.
     # Usually this happens when there was an error during the scan. ;)
