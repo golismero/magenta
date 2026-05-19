@@ -22,7 +22,7 @@ SAMPLES_DIR = os.path.join(MAGENTA_ROOT, "tmp", "samples")
 # Samples we cannot use in tests because the corresponding parser+template
 # combination has known bugs. Tracked outside this test file — these should
 # be re-added as the underlying issues are fixed.
-EXCLUDED_SAMPLE_DIRS = ("graphqlcop",)
+EXCLUDED_SAMPLE_DIRS = ()
 
 
 def _make_filtered_samples_dir(dest_parent):

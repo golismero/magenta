@@ -325,3 +325,4 @@ if __name__ == "__main__":
         main(max_content_width=120)
     except Exception:
         Console().print_exception(show_locals=True)
+        sys.exit(1)

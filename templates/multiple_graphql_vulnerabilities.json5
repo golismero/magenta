@@ -1,11 +1,11 @@
 {
-    title: "{% if issues|length > 1 %}Multiple GraphQL Vulnerabilities Found{% else %}{% include 'title_' + issues[0].cause %}{% endif %}",
+    title: "{% set unique_causes = issues|map(attribute='cause')|unique|list %}{% if unique_causes|length > 1 %}Multiple GraphQL Vulnerabilities Found{% else %}{% include 'title_' + unique_causes[0] %}{% endif %}",
 
-    summary: "{% if issues|length > 1 %}Multiple vulnerabilities were found in {% if affects|length > 1 %}several GraphQL endpoints{% else %}one GraphQL endpoint{% endif %}. GraphQL vulnerabilities may have a wide range of possible impacts, from information leaks to denial of service or data tampering.{% else %}{% include 'cause_' + issues[0].cause %} {% include 'consequence_' + issues[0].consequence %}{% endif %}",
+    summary: "{% set unique_causes = issues|map(attribute='cause')|unique|list %}{% if unique_causes|length > 1 %}Multiple vulnerabilities were found in {% if affects|length > 1 %}several GraphQL endpoints{% else %}one GraphQL endpoint{% endif %}. GraphQL vulnerabilities may have a wide range of possible impacts, from information leaks to denial of service or data tampering.{% else %}{% include 'cause_' + unique_causes[0] %} {% include 'consequence_' + issues[0].consequence %}{% endif %}",
 
     description: "{% include 'summary' %}",
 
-    recommendations: "Whenever possible keep GraphQL endpoints private, exposing only REST API endpoints to browsers.{% if issues|length > 1 %} Additionally, consider implementing the following remediations:\n\n{% for issue in issues %}* {% include 'solution_' + issue.cause %}\n{% endfor %}{% else %}\n\n{% include 'solution_' + issues[0].cause %}{% endif %}",
+    recommendations: "Whenever possible keep GraphQL endpoints private, exposing only REST API endpoints to browsers.{% set unique_causes = issues|map(attribute='cause')|unique|list %}{% if unique_causes|length > 1 %} Additionally, consider implementing the following remediations:\n\n{% for cause in unique_causes %}* {% include 'solution_' + cause %}\n{% endfor %}{% else %}\n\n{% include 'solution_' + unique_causes[0] %}{% endif %}",
 
     title_alias_overloading: "GraphQL Alias Overloading Enabled",
     title_batch_queries: "GraphQL Array-based Query Batching Allowed",
