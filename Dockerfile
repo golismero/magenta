@@ -17,7 +17,7 @@ ENV XDG_CACHE_HOME=/tmp
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends fontconfig fonts-dejavu-core && \
+    apt-get install -y --no-install-recommends fontconfig fonts-dejavu-core pandoc && \
     rm -rf /var/lib/apt/lists/* && \
     fc-cache -f
 COPY --from=builder "${VIRTUAL_ENV}" "${VIRTUAL_ENV}"

@@ -1,0 +1,63 @@
+// Default Dradis section mapping for Magenta.
+//
+// This file is consumed by the `dradis` output format. It controls:
+//   * which #[Section]# markers appear in the <issue><text> CDATA, in what
+//     order, and how each section's body is populated;
+//   * the same for evidence files (when evidence_nodes: true);
+//   * the JSON properties stored on the Dradis "Report content" node.
+//
+// The default targets the Dradis CE *welcome* template kit (the out-of-box
+// default). To use this with the OWASP kit, MITRE kit, or a custom kit:
+//   1. Copy this directory:    cp -r $MAGENTA_HOME/formats/dradis ~/my-templates
+//   2. Edit ~/my-templates/mapping.json5 to match your kit's field set.
+//   3. Pass it on the CLI:     magenta.py ... -f dradis --dradis-templates ~/my-templates
+//
+// The `value` of each entry is a Jinja2 expression evaluated against the
+// per-issue context. After evaluation, the rendered Markdown body is converted
+// to Dradis-flavored Textile via pandoc + libmagenta/dradis.py cleanup.
+//
+// LIQUID ESCAPE: Dradis itself uses Liquid for in-Dradis computed fields.
+// If you want a Liquid expression to survive into the Dradis output (so
+// Dradis evaluates it at display time, not Magenta at render time), wrap
+// it in Jinja2's raw block:   {% raw %}{% assign x = ... %}{% endraw %}
+{
+  // true  → emit <evidence> elements under host nodes (one per [issue, host]
+  //         pair). Standard Dradis CE workflow.
+  // false → no Nodes/Evidences/ created. Use this if your issue.textile
+  //         template carries Affects/Details fields inline.
+  evidence_nodes: true,
+
+  // Ordered list. Position controls #[Section]# order in the issue body.
+  // Default fields target the Dradis CE welcome kit:
+  //   Title, CVSSv4.BaseScore, CVSSv4.BaseVector, Type, Description,
+  //   Solution, References
+  issue_sections: [
+    { name: "Title",             value: "{{ title }}" },
+    { name: "CVSSv4.BaseScore",  value: "" },             // Magenta has no CVSS — fill in via Dradis
+    { name: "CVSSv4.BaseVector", value: "" },             // ditto
+    { name: "Type",              value: "" },             // Internal | External
+    { name: "Description",       value: "{{ description }}" },
+    { name: "Solution",          value: "{{ recommendations }}" },
+    { name: "References",        value: "{% for url in references %}* {{ url }}\n{% endfor %}" },
+  ],
+
+  // Used only when evidence_nodes: true. One render per entry in
+  // issue.affects (where `affected` = the host string for that evidence).
+  // Default targets the welcome kit's Location+Output evidence template.
+  evidence_sections: [
+    { name: "Location", value: "{{ affected }}" },
+    { name: "Output",   value: "{{ details }}" },
+  ],
+
+  // Dradis "Report content" node properties (type-id=4). Stored as a JSON
+  // object in the node's <properties> CDATA. Evaluated against
+  // metadata.project_info. Keys that evaluate to an empty string are omitted.
+  project_properties: {
+    "dradis.productname":          "{{ product_name }}",
+    "dradis.businessunit":         "{{ client_name }}",
+    "dradis.project_start_date":   "{{ start_date }}",
+    "dradis.project_end_date":     "{{ end_date }}",
+    "dradis.report_delivery_date": "{{ report_date }}",
+    "dradis.type_of_engagement":   "{{ test_type }}",
+  },
+}

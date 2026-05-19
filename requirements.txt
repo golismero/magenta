@@ -6,4 +6,5 @@ json5
 jsonschema
 matplotlib
 pygments
+pypandoc
 rich

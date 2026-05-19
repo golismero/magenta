@@ -230,3 +230,9 @@ Vulnerability ID scheme could include codes for client, project, SOW, etc.:
 Translation support for generated templates is pending:
 
 - `templates/bearer/generator/bearer-template-generator.py` (line 3)
+
+---
+
+## Third-party assets
+
+- `libmagenta/table_linebreak_fix_gfm.lua` — pandoc filter, MIT-licensed, borrowed from [DradisMD](https://github.com/GoSecure/dradis-md). Used internally by the `dradis` exporter to coerce multi-line GFM table cells into clean Textile tables.

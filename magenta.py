@@ -83,7 +83,8 @@ def main(ctx, config):
     "--format",
     default="auto",
     type=click.Choice(
-        choices=("auto", "markdown", "json", "obsidian"), case_sensitive=False
+        choices=("auto", "markdown", "json", "obsidian", "textile", "dradis"),
+        case_sensitive=False,
     ),
     help="Output file format. Defaults to 'auto'.",
 )
@@ -100,8 +101,15 @@ def main(ctx, config):
     default=None,
     help="Report metadata (project information, rendering settings, etc.)",
 )
+@click.option(
+    "--dradis-templates",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, resolve_path=True),
+    default=None,
+    help="Directory containing the Dradis mapping.json5. "
+         "Defaults to <MAGENTA_HOME>/formats/dradis. Only used with -f dradis.",
+)
 @click.pass_context
-def report(ctx, pathname, output, format, language, metadata):
+def report(ctx, pathname, output, format, language, metadata, dradis_templates):
     """Read all tool output files in the PATHNAME directory
     and generate a report from them.
 
@@ -123,13 +131,28 @@ def report(ctx, pathname, output, format, language, metadata):
         if output == "-":
             format = "markdown"
         else:
+            base = os.path.basename(output).lower()
             ext = os.path.splitext(output)[1].lower()
-            if not ext:
+            if base == "dradis-export.zip":
+                format = "dradis"
+            elif ext == ".zip":
+                click.echo("error: ambiguous .zip extension; pass -f explicitly "
+                           "(use exact filename 'dradis-export.zip' to autodetect)")
+                return
+            elif not ext:
                 format = "obsidian"
+                click.echo(
+                    "warning: autodetecting 'obsidian' format from a "
+                    "directory-style output path is deprecated and will be "
+                    "removed in a future release. Pass '-f obsidian' explicitly.",
+                    err=True,
+                )
             elif ext in (".md", ".txt"):
                 format = "markdown"
             elif ext in (".json", ".js"):
                 format = "json"
+            elif ext == ".textile":
+                format = "textile"
             else:
                 click.echo("error: cannot guess file format for extension: '%s'" % ext)
                 return
@@ -154,6 +177,11 @@ def report(ctx, pathname, output, format, language, metadata):
             metadata["language"] = language
         magenta.set_language(language)
     result = magenta.process_files(pathname, metadata)
+    if format == "dradis":
+        if dradis_templates is None:
+            dradis_templates = os.path.join(MAGENTA_HOME, "formats", "dradis")
+        magenta.export_as_dradis(result, output, dradis_templates)
+        return
     if format == "obsidian":
         magenta.export_as_obsidian(result, output)
     else:
@@ -166,6 +194,9 @@ def report(ctx, pathname, output, format, language, metadata):
                 fd.write(result["report"])
             elif format == "json":
                 click.echo(color_json(result), file=fd)
+            elif format == "textile":
+                from libmagenta.pandoc import convert_from_markdown
+                fd.write(convert_from_markdown(result["report"], "textile"))
             else:
                 assert False
 

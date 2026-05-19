@@ -1280,3 +1280,18 @@ class MagentaReporter:
                 ) as fd:
                     fd.write(sections[name])
             index += 1
+
+    # Export a generated report as a Dradis project package (.zip).
+    def export_as_dradis(self, report, output_path, dradis_templates_dir):
+        # Import lazily so callers using non-pandoc formats don't pay the
+        # pypandoc import cost.
+        from libmagenta.dradis import (
+            load_mapping,
+            build_repository_xml_with_attachments,
+            package_zip,
+        )
+
+        mapping_path = os.path.join(dradis_templates_dir, "mapping.json5")
+        mapping = load_mapping(mapping_path)
+        xml_str, attachments = build_repository_xml_with_attachments(report, mapping)
+        package_zip(xml_str, attachments, output_path)
