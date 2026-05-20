@@ -166,6 +166,28 @@ additional_references = {
     "RC4": [
         "https://blog.cryptographyengineering.com/2013/03/attack-of-week-rc4-is-kind-of-broken-in.html"
     ],
+    "early_data": ["https://www.rfc-editor.org/rfc/rfc8446#section-2.3"],
+    "opossum": ["https://nvd.nist.gov/vuln/detail/CVE-2025-49812"],
+    "LOGJAM-common_primes": ["https://weakdh.org/"],
+    "intermediate_cert_badOCSP": ["https://www.rfc-editor.org/rfc/rfc6960"],
+    "FS_KEMs": [
+        "https://datatracker.ietf.org/doc/draft-ietf-tls-hybrid-design/"
+    ],
+}
+
+# Legacy testssl IDs renamed in v3.2.0. Aliased here so older scan files
+# render through the same template paragraphs as 3.2+ output. See
+# parsers/testssl/FORMAT_HISTORY.md for the rename history.
+#
+# NOTE: A copy of this map lives in templates/multiple_ssl_issues.py (the merger),
+# which sanitizes these tags as a cross-parser safety net. Keep the two in sync.
+LEGACY_ID_RENAMES = {
+    "PFS": "FS",
+    "PFS_ciphers": "FS_ciphers",
+    "PFS_ECDHE_curves": "FS_ECDHE_curves",
+    "cipherlist_AVERAGE": "cipherlist_OBSOLETED",
+    "cipherlist_GOOD": "cipherlist_STRONG_NOFS",
+    "cipherlist_STRONG": "cipherlist_STRONG_FS",
 }
 
 # Additional taxonomy tags per vulnerability.
@@ -178,6 +200,9 @@ additional_taxonomies = {
     "HSTS": ["RFC 6797"],
     "RC4": ["RFC 7465"],
     "winshock": ["MS14-066"],
+    "early_data": ["RFC 8446"],
+    "TLS_misses_extension_23": ["RFC 7627", "RFC 9325"],
+    "opossum": ["CVE-2025-49812", "CWE-287"],
 }
 
 # These lists will be populated when parsing below.
@@ -291,12 +316,30 @@ for key, results in items.items():
                     obj["status"] = "preferred"
             continue
 
+        # Known testssl bug: cert_keySize<n> can emit a 2-argument fileout
+        # where the literal string "cannot be determined" lands in the
+        # severity slot. The severity filter below already drops it, but
+        # catch it explicitly so a future refactor doesn't accidentally
+        # surface this corrupt finding.
+        if item["severity"] == "cannot be determined":
+            continue
+
         # For every other item, ignore if not a vulnerability.
         if item["severity"] not in ratings:
             continue
 
         # Skip some redundant items.
         if id.startswith("cert_notAfter"):
+            continue
+
+        # Map legacy testssl 3.0.x IDs to their 3.2+ equivalents.
+        if id in LEGACY_ID_RENAMES:
+            id = LEGACY_ID_RENAMES[id]
+
+        # Skip findings that only report the OpenSSL default negotiation result,
+        # which testssl itself dropped in v3.2.0 as not security-relevant (commit
+        # 1842b9ee, PR #2235). We do the same for older scan files for consistency.
+        if id in ("cipher_negotiated", "protocol_negotiated"):
             continue
 
         # Remember the overall BEAST severity so we can grade the per-cipher
@@ -369,6 +412,14 @@ for key, results in items.items():
         # The assumption here is for every testssl.sh ID we have a matching i18n template.
         # Possibly some of this data won't be used by the templates, but actually checking
         # is a bit more work than I feel is needed right now. Definitely doable though.
+
+        # On multi-certificate hosts testssl injects a " <hostCert#N>" marker into
+        # cert IDs. It usually sits at the end, but for cert_trust it lands mid-string
+        # (e.g. "cert_trust <hostCert#2>_wildcard"), so strip it wherever it appears to
+        # keep any trailing suffix intact before collapsing per-cert findings below.
+        if " <hostCert#" in id:
+            head, _, rest = id.partition(" <hostCert#")
+            id = head + rest.partition(">")[2]
 
         # Some IDs will contain suffixes if, for example, there is more than one certificate.
         # Since parsing that is too complicated we will just append everything to a single ID.

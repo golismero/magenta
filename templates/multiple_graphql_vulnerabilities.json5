@@ -39,6 +39,10 @@
     consequence_csrf: "This may lead to the service becoming vulnerable to Cross-Site Request Forgery (CSRF) attacks.",
     consequence_infoleak: "While this is not in itself an exploitable vulnerability, detailed information given to adversaries may facilitate attacks.",
 
+    consequence_label_dos: "Denial of Service",
+    consequence_label_csrf: "Cross-Site Request Forgery",
+    consequence_label_infoleak: "Information Leak",
+
     solution_alias_overloading: "Limit the number of aliases permitted per query, or enforce a maximum query complexity score that accounts for aliased fields. Query complexity analysis plugins (such as `graphql-cost-analysis`) can enforce these limits at the resolver level.",
     solution_batch_queries: "Disable batched queries if the application does not require this feature. If batching is required, enforce a strict cap on the number of operations per request and apply rate limiting per client.",
     solution_get_based_queries: "Restrict the GraphQL endpoint to accept queries only over the POST method. Reject GET requests entirely, and configure intermediaries (load balancers, CDNs) to never cache responses from the GraphQL endpoint.",
@@ -53,7 +57,9 @@
     solution_mutation_over_get: "Restrict mutations to the POST method only. State-changing operations served over GET are vulnerable to Cross-Site Request Forgery (CSRF) and may also be cached by intermediaries.",
     solution_unhandled_errors: "Catch unhandled exceptions at the resolver or middleware level and return a generic error message to clients in production. Log detailed error information server-side only.",
 
-    details: "",
+    details: "{% set urls = issues|map(attribute='url')|unique|list %}{% if urls|length == 1 %}All of the issues described below were found on the GraphQL endpoint `{{ urls[0] }}`.\n\n| Issue | {% include '../main/severity' %} | Consequence |\n| -- | -- | -- |\n{% for issue in issues %}| {% include 'title_' + issue.cause %} | {% include '../main/' + issue.severity %} | {% include 'consequence_label_' + issue.consequence %} |\n{% endfor %}{% else %}The following issues were identified:\n\n| Endpoint | Issue | {% include '../main/severity' %} | Consequence |\n| -- | -- | -- | -- |\n{% for issue in issues %}| `{{ issue.url }}` | {% include 'title_' + issue.cause %} | {% include '../main/' + issue.severity %} | {% include 'consequence_label_' + issue.consequence %} |\n{% endfor %}{% endif %}\n{% include 'reproduction' %}",
+
+    reproduction: "Each of the issues listed above can be reproduced by replaying the corresponding request:\n\n{% for issue in issues %}***{% include 'title_' + issue.cause %}***\n\n```\n{{ issue.command|safe }}\n```\n\n{% endfor %}",
 
     references: [
         "https://portswigger.net/web-security/graphql",

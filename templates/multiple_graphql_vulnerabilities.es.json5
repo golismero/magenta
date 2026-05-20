@@ -1,0 +1,71 @@
+{
+    title: "{% set unique_causes = issues|map(attribute='cause')|unique|list %}{% if unique_causes|length > 1 %}Múltiples Vulnerabilidades de GraphQL Encontradas{% else %}{% include 'title_' + unique_causes[0] %}{% endif %}",
+
+    summary: "{% set unique_causes = issues|map(attribute='cause')|unique|list %}{% if unique_causes|length > 1 %}Se encontraron múltiples vulnerabilidades en {% if affects|length > 1 %}varios endpoints de GraphQL{% else %}un endpoint de GraphQL{% endif %}. Las vulnerabilidades de GraphQL pueden tener un amplio rango de impactos posibles, desde fugas de información hasta denegación de servicio o manipulación de datos.{% else %}{% include 'cause_' + unique_causes[0] %} {% include 'consequence_' + issues[0].consequence %}{% endif %}",
+
+    description: "{% include 'summary' %}",
+
+    recommendations: "Siempre que sea posible, mantenga los endpoints de GraphQL privados, exponiendo a los navegadores únicamente los endpoints de la API REST.{% set unique_causes = issues|map(attribute='cause')|unique|list %}{% if unique_causes|length > 1 %} Adicionalmente, considere implementar las siguientes remediaciones:\n\n{% for cause in unique_causes %}* {% include 'solution_' + cause %}\n{% endfor %}{% else %}\n\n{% include 'solution_' + unique_causes[0] %}{% endif %}",
+
+    title_alias_overloading: "Sobrecarga de Alias de GraphQL Habilitada",
+    title_batch_queries: "Agrupación de Consultas GraphQL Basada en Arrays Permitida",
+    title_get_based_queries: "Consultas GraphQL mediante el Método GET Permitidas",
+    title_post_based_queries: "Consultas GraphQL mediante Formulario Web Permitidas",
+    title_trace: "Modo de Depuración de GraphQL Habilitado",
+    title_field_duplication: "Duplicación de Campos de GraphQL Habilitada",
+    title_field_suggestions: "Sugerencias de Campos de GraphQL Habilitadas",
+    title_ide: "IDE de GraphQL Habilitado",
+    title_introspection: "Consulta de Introspección de GraphQL Habilitada",
+    title_directives_overloading: "Sobrecarga de Directivas de GraphQL Habilitada",
+    title_circular_query: "Consultas Circulares de GraphQL mediante Introspección Permitidas",
+    title_mutation_over_get: "Mutaciones de GraphQL mediante el Método GET Permitidas",
+    title_unhandled_errors: "Exposición de Información en los Mensajes de Error de GraphQL",
+
+    cause_alias_overloading: "Se detectó que la sobrecarga de alias está habilitada.",
+    cause_batch_queries: "Se detectó que la agrupación de consultas basada en arrays está permitida.",
+    cause_get_based_queries: "Se detectó que las consultas GraphQL mediante el método GET están permitidas.",
+    cause_post_based_queries: "Se detectó que las consultas GraphQL mediante formularios web (peticiones POST con contenido `application/x-www-form-urlencoded`) están permitidas.",
+    cause_trace: "Se detectó que el modo de trazado de GraphQL (salida de depuración) está habilitado.",
+    cause_field_duplication: "Se detectó que se permiten campos repetidos dentro de una misma operación de GraphQL.",
+    cause_field_suggestions: "Se detectó que las sugerencias de campos de GraphQL (\"quiso decir\") están habilitadas.",
+    cause_ide: "Se detectó que un IDE de GraphQL (como GraphiQL o GraphQL Playground) está expuesto.",
+    cause_introspection: "Se detectó que la introspección de GraphQL está habilitada.",
+    cause_directives_overloading: "Se detectó que la sobrecarga de directivas está habilitada.",
+    cause_circular_query: "Se detectó que las consultas circulares mediante introspección están permitidas.",
+    cause_mutation_over_get: "Se detectó que las mutaciones de GraphQL mediante el método GET están permitidas.",
+    cause_unhandled_errors: "Se detectó que el endpoint de GraphQL devuelve mensajes de error detallados (como trazas de pila) ante excepciones no controladas.",
+
+    consequence_dos: "Esto puede aprovecharse para provocar una condición de denegación de servicio debido a una complejidad algorítmica excesiva.",
+    consequence_csrf: "Esto puede hacer que el servicio sea vulnerable a ataques de falsificación de petición en sitios cruzados (CSRF).",
+    consequence_infoleak: "Si bien esto no constituye en sí mismo una vulnerabilidad explotable, la información detallada proporcionada a los adversarios puede facilitar otros ataques.",
+
+    consequence_label_dos: "Denegación de Servicio",
+    consequence_label_csrf: "Falsificación de Petición en Sitios Cruzados",
+    consequence_label_infoleak: "Fuga de Información",
+
+    solution_alias_overloading: "Limite la cantidad de alias permitidos por consulta, o imponga una puntuación máxima de complejidad de consulta que tenga en cuenta los campos con alias. Los plugins de análisis de complejidad de consultas (como `graphql-cost-analysis`) pueden imponer estos límites a nivel del resolver.",
+    solution_batch_queries: "Deshabilite las consultas agrupadas si la aplicación no requiere esta funcionalidad. Si la agrupación es necesaria, imponga un límite estricto en la cantidad de operaciones por petición y aplique limitación de tasa por cliente.",
+    solution_get_based_queries: "Restrinja el endpoint de GraphQL para que acepte consultas únicamente mediante el método POST. Rechace por completo las peticiones GET y configure los intermediarios (balanceadores de carga, CDNs) para que nunca almacenen en caché las respuestas del endpoint de GraphQL.",
+    solution_post_based_queries: "Exija la cabecera `Content-Type: application/json` en cada petición de GraphQL. Esto obliga a los navegadores a emitir una verificación previa (preflight) de CORS, lo que evita que peticiones POST simples de origen cruzado puedan provocar cambios de estado.",
+    solution_trace: "Deshabilite las extensiones de trazado, depuración y tracing en el endpoint de GraphQL en producción. Estas funcionalidades exponen tiempos internos, rutas de archivos y detalles de ejecución que facilitan el reconocimiento.",
+    solution_field_duplication: "Rechace las consultas que repiten el mismo campo dentro de una operación, ya sea imponiendo reglas de validación del esquema o configurando el servidor de GraphQL para deduplicar campos y aplicar límites de coste por consulta.",
+    solution_field_suggestions: "Deshabilite las sugerencias de campos en producción para que las respuestas de error a consultas inválidas no revelen la estructura del esquema. La mayoría de los servidores de GraphQL exponen esto como una opción de configuración.",
+    solution_ide: "Deshabilite el IDE de GraphQL en los entornos de producción. Restrinja el acceso únicamente a los entornos de desarrollo o de pruebas (staging), idealmente detrás de autenticación o en una red interna.",
+    solution_introspection: "Deshabilite la introspección en producción. La mayoría de los frameworks de GraphQL admiten una opción de configuración (por ejemplo, `introspection: false` en Apollo Server, o `NoSchemaIntrospectionCustomRule` en GraphQL.js) que impide que los clientes consulten `__schema` o `__type`.",
+    solution_directives_overloading: "Limite la cantidad de directivas permitidas por campo o por consulta. Los plugins de análisis de complejidad de consultas pueden configurarse para asignar un coste a las directivas y rechazar las consultas que superen un umbral definido.",
+    solution_circular_query: "Deshabilite la introspección en producción, lo que elimina la causa raíz. Adicionalmente, imponga un límite máximo de profundidad de consulta en el servidor de GraphQL para evitar que se procesen consultas recursivas.",
+    solution_mutation_over_get: "Restrinja las mutaciones únicamente al método POST. Las operaciones que cambian de estado servidas mediante GET son vulnerables a la falsificación de petición en sitios cruzados (CSRF) y además pueden ser almacenadas en caché por los intermediarios.",
+    solution_unhandled_errors: "Capture las excepciones no controladas a nivel del resolver o del middleware y devuelva un mensaje de error genérico a los clientes en producción. Registre la información detallada de los errores únicamente del lado del servidor.",
+
+    details: "{% set urls = issues|map(attribute='url')|unique|list %}{% if urls|length == 1 %}Todos los problemas descritos a continuación se encontraron en el endpoint de GraphQL `{{ urls[0] }}`.\n\n| Problema | {% include '../main/severity' %} | Consecuencia |\n| -- | -- | -- |\n{% for issue in issues %}| {% include 'title_' + issue.cause %} | {% include '../main/' + issue.severity %} | {% include 'consequence_label_' + issue.consequence %} |\n{% endfor %}{% else %}Se identificaron los siguientes problemas:\n\n| Endpoint | Problema | {% include '../main/severity' %} | Consecuencia |\n| -- | -- | -- | -- |\n{% for issue in issues %}| `{{ issue.url }}` | {% include 'title_' + issue.cause %} | {% include '../main/' + issue.severity %} | {% include 'consequence_label_' + issue.consequence %} |\n{% endfor %}{% endif %}\n{% include 'reproduction' %}",
+
+    reproduction: "Cada uno de los problemas listados arriba puede reproducirse repitiendo la petición correspondiente:\n\n{% for issue in issues %}***{% include 'title_' + issue.cause %}***\n\n```\n{{ issue.command|safe }}\n```\n\n{% endfor %}",
+
+    references: [
+        "https://portswigger-net.translate.goog/web-security/graphql?_x_tr_sl=auto&_x_tr_tl=es&_x_tr_hl=en&_x_tr_pto=wapp",
+    ],
+
+    taxonomy: [
+        "CWE-200",
+    ],
+}
