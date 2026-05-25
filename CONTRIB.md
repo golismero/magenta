@@ -145,6 +145,14 @@ Issue severity should be derived from CVE data:
 
 - `parsers/nikto/nikto.py` (line 15)
 
+### Nikto — Deduce Missing OSVDB→CVE Mappings from Source History (side project)
+
+`parsers/nikto/osvdb2cve.json` (regenerated from the Wayback Machine) is incomplete. We can mine more mappings from Nikto's own source: each test's `nikto_id` is stable across versions, but its reference column mutated `OSVDB-N → CVE-…` over time, so joining a test ID across revisions yields `OSVDB-N → CVE` pairs for free.
+
+Approach: build `id → references` from every tag *and* the full `git log -p -- program/databases/db_tests` history; for each `nikto_id`, pair older OSVDB tokens with newer CVE tokens. Keep clean 1:1 replacements as high confidence.
+
+Tougher than it looks — **upstream's edits are noisy**: `CVE-2011-3392` was the wrong vuln, `OSVCVE-2011-339244` was corrupted, and in a quick `2.5.0→main` single-token sample 2 of 5 overlaps *disagreed* with the existing map. So this is candidate generation, not a blind merge: emit `candidates.json` + `conflicts.json` for manual review, cross-check against the existing map, and filter corruption (malformed prefixes, mismatched year ranges). Best done as a standalone throwaway script, not wired into the parser.
+
 ### GraphQL Cop — Structural Reorganization
 
 Error handling differences between HTTP and curl responses are not addressed:
