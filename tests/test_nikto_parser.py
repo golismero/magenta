@@ -1,6 +1,10 @@
-import os
-import json
+import contextlib
 import importlib.util
+import io as _io
+import json
+import os
+import subprocess
+import sys as _sys
 import unittest
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -104,10 +108,6 @@ class TestOsvdb(unittest.TestCase):
         with contextlib.redirect_stderr(buf):
             nikto.osvdb_hitrate_warning()
         self.assertEqual(buf.getvalue(), "")
-
-
-import io as _io
-import contextlib
 
 
 class TestSpecialTokens(unittest.TestCase):
@@ -359,10 +359,6 @@ class TestBuildIssues(unittest.TestCase):
         issues = nikto.build_issues(findings)
         self.assertEqual(set(issues[0]["issues"].keys()), {"http://h:80", "https://k:443"})
         self.assertEqual(len(issues[0]["issues"]["http://h:80"]), 1)
-
-
-import subprocess
-import sys as _sys
 
 
 class TestMainDispatch(unittest.TestCase):
