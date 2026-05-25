@@ -9,6 +9,7 @@ from xml.etree import ElementTree as ET
 
 try:
     import pypandoc
+
     pypandoc.get_pandoc_version()
     PANDOC_AVAILABLE = True
 except Exception:
@@ -66,8 +67,16 @@ class TestTextileFormat(unittest.TestCase):
             samples = _make_filtered_samples_dir(tmp)
             out = os.path.join(tmp, "report.out")
             subprocess.run(
-                [sys.executable, MAGENTA_PY, "report", samples, "-o", out,
-                 "-f", "textile"],
+                [
+                    sys.executable,
+                    MAGENTA_PY,
+                    "report",
+                    samples,
+                    "-o",
+                    out,
+                    "-f",
+                    "textile",
+                ],
                 check=True,
                 cwd=MAGENTA_ROOT,
             )
@@ -82,9 +91,18 @@ class TestDradisFormat(unittest.TestCase):
             samples = _make_filtered_samples_dir(tmp)
             out = os.path.join(tmp, "out.zip")
             subprocess.run(
-                [sys.executable, MAGENTA_PY, "report", samples, "-o", out,
-                 "-f", "dradis"],
-                check=True, cwd=MAGENTA_ROOT,
+                [
+                    sys.executable,
+                    MAGENTA_PY,
+                    "report",
+                    samples,
+                    "-o",
+                    out,
+                    "-f",
+                    "dradis",
+                ],
+                check=True,
+                cwd=MAGENTA_ROOT,
             )
             self.assertTrue(os.path.isfile(out))
             with zipfile.ZipFile(out) as zf:
@@ -100,7 +118,8 @@ class TestDradisFormat(unittest.TestCase):
             out = os.path.join(tmp, "dradis-export.zip")
             subprocess.run(
                 [sys.executable, MAGENTA_PY, "report", samples, "-o", out],
-                check=True, cwd=MAGENTA_ROOT,
+                check=True,
+                cwd=MAGENTA_ROOT,
             )
             self.assertTrue(os.path.isfile(out))
 
@@ -113,13 +132,20 @@ class TestDradisFormat(unittest.TestCase):
             out = os.path.join(tmp, "random.zip")
             result = subprocess.run(
                 [sys.executable, MAGENTA_PY, "report", samples, "-o", out],
-                cwd=MAGENTA_ROOT, capture_output=True, text=True,
+                cwd=MAGENTA_ROOT,
+                capture_output=True,
+                text=True,
             )
             combined = result.stdout + result.stderr
-            self.assertIn("ambiguous", combined.lower(),
-                          "expected an 'ambiguous .zip' error message; got: " + combined)
-            self.assertFalse(os.path.isfile(out),
-                             "no zip should be produced when format is ambiguous")
+            self.assertIn(
+                "ambiguous",
+                combined.lower(),
+                "expected an 'ambiguous .zip' error message; got: " + combined,
+            )
+            self.assertFalse(
+                os.path.isfile(out),
+                "no zip should be produced when format is ambiguous",
+            )
 
     def test_custom_dradis_templates_dir(self):
         # Drop a mapping.json5 with only a Title section into a temp dir;
@@ -139,9 +165,20 @@ class TestDradisFormat(unittest.TestCase):
 """)
             out = os.path.join(tmp, "out.zip")
             subprocess.run(
-                [sys.executable, MAGENTA_PY, "report", samples, "-o", out,
-                 "-f", "dradis", "--dradis-templates", templates_dir],
-                check=True, cwd=MAGENTA_ROOT,
+                [
+                    sys.executable,
+                    MAGENTA_PY,
+                    "report",
+                    samples,
+                    "-o",
+                    out,
+                    "-f",
+                    "dradis",
+                    "--dradis-templates",
+                    templates_dir,
+                ],
+                check=True,
+                cwd=MAGENTA_ROOT,
             )
             with zipfile.ZipFile(out) as zf:
                 with zf.open("dradis-repository.xml") as fd:
@@ -161,7 +198,9 @@ class TestAutodetectionDeprecation(unittest.TestCase):
             out = os.path.join(tmp, "vault")  # no extension → obsidian
             result = subprocess.run(
                 [sys.executable, MAGENTA_PY, "report", samples, "-o", out],
-                cwd=MAGENTA_ROOT, capture_output=True, text=True,
+                cwd=MAGENTA_ROOT,
+                capture_output=True,
+                text=True,
             )
             self.assertEqual(result.returncode, 0)
             combined = result.stdout + result.stderr
@@ -173,9 +212,19 @@ class TestAutodetectionDeprecation(unittest.TestCase):
             samples = _make_filtered_samples_dir(tmp)
             out = os.path.join(tmp, "vault")
             result = subprocess.run(
-                [sys.executable, MAGENTA_PY, "report", samples, "-o", out,
-                 "-f", "obsidian"],
-                cwd=MAGENTA_ROOT, capture_output=True, text=True,
+                [
+                    sys.executable,
+                    MAGENTA_PY,
+                    "report",
+                    samples,
+                    "-o",
+                    out,
+                    "-f",
+                    "obsidian",
+                ],
+                cwd=MAGENTA_ROOT,
+                capture_output=True,
+                text=True,
             )
             self.assertEqual(result.returncode, 0)
             combined = result.stdout + result.stderr

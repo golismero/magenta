@@ -8,6 +8,7 @@ from xml.etree import ElementTree as ET
 
 try:
     import pypandoc
+
     pypandoc.get_pandoc_version()
     PANDOC_AVAILABLE = True
 except Exception:
@@ -78,11 +79,7 @@ class TestMarkdownToDradisTextile(unittest.TestCase):
         # Textile — meaning the linebreak inside the cell must use Textile's
         # "\<newline>" escape, not a bare newline that would terminate the
         # row early.
-        md = (
-            "| Field | Notes |\n"
-            "|-------|-------|\n"
-            "| A     | line 1<br>line 2 |\n"
-        )
+        md = "| Field | Notes |\n|-------|-------|\n| A     | line 1<br>line 2 |\n"
         result = markdown_to_dradis_textile(md)
         self.assertNotIn("<table", result)
         self.assertNotIn("<br", result)
@@ -129,7 +126,7 @@ class TestLoadMapping(unittest.TestCase):
 
     def test_missing_required_key_raises(self):
         # Missing evidence_nodes
-        bad = '{ issue_sections: [], evidence_sections: [], project_properties: {} }'
+        bad = "{ issue_sections: [], evidence_sections: [], project_properties: {} }"
         with tempfile.NamedTemporaryFile("w", suffix=".json5", delete=False) as fd:
             fd.write(bad)
             path = fd.name
@@ -260,14 +257,34 @@ class TestBuildRepositoryXmlSkeleton(unittest.TestCase):
         self.fail("Report content node missing")
 
     def test_targets_node_with_per_host_children(self):
-        report = _minimal_report(issues=[
-            {"title": "X", "affects": ["host-a", "host-b"], "details": "",
-             "description": "", "recommendations": "", "severity": "low",
-             "taxonomy": [], "references": [], "tools": [], "vulnid": "1.1"},
-            {"title": "Y", "affects": ["host-b", "host-c"], "details": "",
-             "description": "", "recommendations": "", "severity": "low",
-             "taxonomy": [], "references": [], "tools": [], "vulnid": "1.2"},
-        ])
+        report = _minimal_report(
+            issues=[
+                {
+                    "title": "X",
+                    "affects": ["host-a", "host-b"],
+                    "details": "",
+                    "description": "",
+                    "recommendations": "",
+                    "severity": "low",
+                    "taxonomy": [],
+                    "references": [],
+                    "tools": [],
+                    "vulnid": "1.1",
+                },
+                {
+                    "title": "Y",
+                    "affects": ["host-b", "host-c"],
+                    "details": "",
+                    "description": "",
+                    "recommendations": "",
+                    "severity": "low",
+                    "taxonomy": [],
+                    "references": [],
+                    "tools": [],
+                    "vulnid": "1.2",
+                },
+            ]
+        )
         xml_str = build_repository_xml(report, _minimal_mapping())
         root = ET.fromstring(xml_str)
 
@@ -281,7 +298,8 @@ class TestBuildRepositoryXmlSkeleton(unittest.TestCase):
 
         # Find child nodes whose parent-id == targets_id
         children = [
-            n for n in root.findall(".//nodes/node")
+            n
+            for n in root.findall(".//nodes/node")
             if n.findtext("parent-id") == targets_id
         ]
         labels = sorted(n.findtext("label") for n in children)
@@ -295,16 +313,30 @@ class TestBuildRepositoryXmlSkeleton(unittest.TestCase):
         self.assertIsNotNone(root.find("categories"))
 
     def test_archive_ids_are_unique(self):
-        report = _minimal_report(issues=[
-            {"title": "X", "affects": ["a"], "details": "", "description": "",
-             "recommendations": "", "severity": "low", "taxonomy": [],
-             "references": [], "tools": [], "vulnid": "1.1"},
-        ])
+        report = _minimal_report(
+            issues=[
+                {
+                    "title": "X",
+                    "affects": ["a"],
+                    "details": "",
+                    "description": "",
+                    "recommendations": "",
+                    "severity": "low",
+                    "taxonomy": [],
+                    "references": [],
+                    "tools": [],
+                    "vulnid": "1.1",
+                },
+            ]
+        )
         xml_str = build_repository_xml(report, _minimal_mapping())
         root = ET.fromstring(xml_str)
         all_ids = [el.text for el in root.iter("id")]
-        self.assertEqual(len(all_ids), len(set(all_ids)),
-                         "Duplicate <id> values in archive: %r" % all_ids)
+        self.assertEqual(
+            len(all_ids),
+            len(set(all_ids)),
+            "Duplicate <id> values in archive: %r" % all_ids,
+        )
 
 
 @unittest.skipUnless(PANDOC_AVAILABLE, "pandoc not installed")
@@ -312,18 +344,20 @@ class TestBuildRepositoryXmlIssues(unittest.TestCase):
     def _report_with_one_issue(self):
         return {
             "metadata": {"project_info": {}},
-            "issues": [{
-                "title": "SQL Injection",
-                "description": "The login form is vulnerable.",
-                "recommendations": "Use parameterized queries.",
-                "details": "The `username` parameter accepts SQL.",
-                "severity": "high",
-                "affects": ["api.example.com"],
-                "taxonomy": [],
-                "references": ["https://owasp.org/sqli"],
-                "tools": [],
-                "vulnid": "1.1",
-            }],
+            "issues": [
+                {
+                    "title": "SQL Injection",
+                    "description": "The login form is vulnerable.",
+                    "recommendations": "Use parameterized queries.",
+                    "details": "The `username` parameter accepts SQL.",
+                    "severity": "high",
+                    "affects": ["api.example.com"],
+                    "taxonomy": [],
+                    "references": ["https://owasp.org/sqli"],
+                    "tools": [],
+                    "vulnid": "1.1",
+                }
+            ],
             "sections": {"issues": {}},
         }
 
@@ -402,16 +436,20 @@ class TestBuildRepositoryXmlEvidence(unittest.TestCase):
     def _two_host_report(self):
         return {
             "metadata": {"project_info": {"report_author": "tester@x.com"}},
-            "issues": [{
-                "title": "Open Port",
-                "description": "Port is open.",
-                "recommendations": "Close it.",
-                "details": "Detected on port 22 via nmap.",
-                "severity": "low",
-                "affects": ["host-a", "host-b"],
-                "taxonomy": [], "references": [], "tools": [],
-                "vulnid": "1.1",
-            }],
+            "issues": [
+                {
+                    "title": "Open Port",
+                    "description": "Port is open.",
+                    "recommendations": "Close it.",
+                    "details": "Detected on port 22 via nmap.",
+                    "severity": "low",
+                    "affects": ["host-a", "host-b"],
+                    "taxonomy": [],
+                    "references": [],
+                    "tools": [],
+                    "vulnid": "1.1",
+                }
+            ],
             "sections": {"issues": {}},
         }
 
@@ -449,7 +487,9 @@ class TestBuildRepositoryXmlEvidence(unittest.TestCase):
         self.assertEqual(len(all_evidence), 2)
         for ev in all_evidence:
             author = ev.findtext("author")
-            self.assertIsNotNone(author, "<author> element required on every <evidence>")
+            self.assertIsNotNone(
+                author, "<author> element required on every <evidence>"
+            )
             self.assertTrue(author.strip(), "<author> must not be empty")
 
     def test_evidence_issue_id_references_an_existing_issue(self):
@@ -466,8 +506,11 @@ class TestBuildRepositoryXmlEvidence(unittest.TestCase):
         for ev in root.findall(".//nodes/node/evidence/evidence"):
             ref = ev.findtext("issue-id")
             self.assertIsNotNone(ref, "<issue-id> element required on every <evidence>")
-            self.assertIn(ref, issue_ids,
-                          "<issue-id> %r does not match any <issue><id> in the document" % ref)
+            self.assertIn(
+                ref,
+                issue_ids,
+                "<issue-id> %r does not match any <issue><id> in the document" % ref,
+            )
 
     def test_evidence_author_falls_back_to_magenta(self):
         mapping = _minimal_mapping()
@@ -485,8 +528,9 @@ class TestBuildRepositoryXmlEvidence(unittest.TestCase):
         root = ET.fromstring(xml_str)
         all_evidence_items = root.findall(".//nodes/node/evidence/evidence")
         self.assertEqual(
-            len(all_evidence_items), 0,
-            "evidence_nodes: false must not emit any <evidence><evidence> items"
+            len(all_evidence_items),
+            0,
+            "evidence_nodes: false must not emit any <evidence><evidence> items",
         )
 
     def test_evidence_content_uses_section_markers(self):
@@ -520,6 +564,7 @@ class TestChartAttachmentAndZip(unittest.TestCase):
 
     def test_chart_node_present_when_chart_in_metadata(self):
         from libmagenta.dradis import build_repository_xml
+
         xml_str = build_repository_xml(self._report_with_chart(), _minimal_mapping())
         root = ET.fromstring(xml_str)
         labels = [n.findtext("label") for n in root.findall(".//nodes/node")]
@@ -527,6 +572,7 @@ class TestChartAttachmentAndZip(unittest.TestCase):
 
     def test_no_chart_node_when_chart_absent(self):
         from libmagenta.dradis import build_repository_xml
+
         xml_str = build_repository_xml(_minimal_report(), _minimal_mapping())
         root = ET.fromstring(xml_str)
         labels = [n.findtext("label") for n in root.findall(".//nodes/node")]
@@ -534,10 +580,11 @@ class TestChartAttachmentAndZip(unittest.TestCase):
 
     def test_package_zip_writes_xml_and_attachments(self):
         from libmagenta.dradis import package_zip
+
         with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as fd:
             zip_path = fd.name
         try:
-            xml = "<?xml version=\"1.0\"?><dradis-template version=\"4\"/>"
+            xml = '<?xml version="1.0"?><dradis-template version="4"/>'
             attachments = {"5/chart.png": b"\x89PNG\r\n\x1a\n"}
             package_zip(xml, attachments, zip_path)
 
@@ -557,6 +604,7 @@ class TestChartAttachmentAndZip(unittest.TestCase):
         # node id of the "Uploaded files" node. We test the helper that
         # produces both pieces of info in lockstep.
         from libmagenta.dradis import build_repository_xml_with_attachments
+
         report = self._report_with_chart()
         xml_str, attachments = build_repository_xml_with_attachments(
             report, _minimal_mapping()
@@ -593,16 +641,20 @@ class TestExportAsDradisEngineMethod(unittest.TestCase):
                 "report_sections_order": [],
                 "issue_subsections_order": [],
             },
-            "issues": [{
-                "title": "Test Issue",
-                "description": "A description.",
-                "recommendations": "A fix.",
-                "details": "Detected on host.",
-                "severity": "medium",
-                "affects": ["host-1"],
-                "taxonomy": [], "references": [], "tools": [],
-                "vulnid": "1.1",
-            }],
+            "issues": [
+                {
+                    "title": "Test Issue",
+                    "description": "A description.",
+                    "recommendations": "A fix.",
+                    "details": "Detected on host.",
+                    "severity": "medium",
+                    "affects": ["host-1"],
+                    "taxonomy": [],
+                    "references": [],
+                    "tools": [],
+                    "vulnid": "1.1",
+                }
+            ],
             "sections": {"issues": {}},
         }
 

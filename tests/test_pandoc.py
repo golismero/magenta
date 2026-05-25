@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 try:
     import pypandoc
+
     pypandoc.get_pandoc_version()
     PANDOC_AVAILABLE = True
 except Exception:
@@ -39,8 +40,8 @@ class TestConvertFromMarkdown(unittest.TestCase):
         result_with_args = convert_from_markdown(
             md, "textile", extra_args=["--shift-heading-level-by=1"]
         )
-        self.assertIn("h1", result_default)       # default keeps it at h1
-        self.assertIn("h2", result_with_args)     # extra_args demoted it
+        self.assertIn("h1", result_default)  # default keeps it at h1
+        self.assertIn("h2", result_with_args)  # extra_args demoted it
 
 
 class TestConvertFromMarkdownWithoutPandoc(unittest.TestCase):
@@ -53,8 +54,8 @@ class TestConvertFromMarkdownWithoutPandoc(unittest.TestCase):
                 convert_from_markdown("hello", "textile")
         msg = str(ctx.exception)
         self.assertIn("pandoc", msg.lower())
-        self.assertIn("brew", msg)        # macOS install hint
-        self.assertIn("apt", msg)         # Debian install hint
+        self.assertIn("brew", msg)  # macOS install hint
+        self.assertIn("apt", msg)  # Debian install hint
 
     def test_runtime_error_chains_original_exception(self):
         # The wrapper uses `raise RuntimeError(...) from exc` — verify the chain.

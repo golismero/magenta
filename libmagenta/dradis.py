@@ -55,6 +55,7 @@ def _re_convert_html_table(html_table):
     cells into a single line via the {{linebreak}} placeholder) → Textile.
     """
     import pypandoc
+
     gfm = pypandoc.convert_text(
         html_table,
         "gfm",
@@ -80,6 +81,7 @@ def markdown_to_dradis_textile(md_text):
     # Pass 1: HTML tables
     def _replace(match):
         return _re_convert_html_table(match.group(0))
+
     text = _HTML_TABLE_PATTERN.sub(_replace, text)
 
     # Pass 1b: Inline <br> tags that survive as-is inside Textile table cells.
@@ -103,7 +105,12 @@ class InvalidMappingError(Exception):
     """Raised when the mapping.json5 file is malformed or missing required keys."""
 
 
-_REQUIRED_KEYS = ("evidence_nodes", "issue_sections", "evidence_sections", "project_properties")
+_REQUIRED_KEYS = (
+    "evidence_nodes",
+    "issue_sections",
+    "evidence_sections",
+    "project_properties",
+)
 
 
 def load_mapping(path):
@@ -140,7 +147,8 @@ def load_mapping(path):
     for i, entry in enumerate(mapping["evidence_sections"]):
         if not (isinstance(entry, dict) and "name" in entry and "value" in entry):
             raise InvalidMappingError(
-                "evidence_sections[%d] must be an object with 'name' and 'value' keys" % i
+                "evidence_sections[%d] must be an object with 'name' and 'value' keys"
+                % i
             )
     return mapping
 
@@ -177,6 +185,7 @@ class _IdAllocator:
     Archive IDs only need to be unique within the zip — Dradis maps them
     to fresh DB IDs on import via lookup_table.
     """
+
     def __init__(self):
         self._next = 1
 
@@ -198,9 +207,8 @@ def _set_cdata(element, text):
 
 
 def _cdata_post_process(xml_str):
-    return (
-        xml_str.replace("\x01CDATA_OPEN\x01", "<![CDATA[")
-               .replace("\x01CDATA_CLOSE\x01", "]]>")
+    return xml_str.replace("\x01CDATA_OPEN\x01", "<![CDATA[").replace(
+        "\x01CDATA_CLOSE\x01", "]]>"
     )
 
 
@@ -235,7 +243,11 @@ def _build_project_properties_json(mapping, project_info):
             out[key] = value
     # Mimic the format we observed in tmp/dradis-export/dradis-repository.xml:
     # multi-line indented JSON inside the CDATA.
-    return "{\n" + ",\n".join('  "%s": %s' % (k, json.dumps(v)) for k, v in out.items()) + "\n}"
+    return (
+        "{\n"
+        + ",\n".join('  "%s": %s' % (k, json.dumps(v)) for k, v in out.items())
+        + "\n}"
+    )
 
 
 def _unique_hosts(issues):
@@ -289,8 +301,9 @@ def _render_evidence_content(issue_data, affected, mapping):
     return "\n".join(parts)
 
 
-def _build_evidence_element(host_node, ids, issue_data, affected, mapping,
-                            issue_archive_id, author):
+def _build_evidence_element(
+    host_node, ids, issue_data, affected, mapping, issue_archive_id, author
+):
     """Append an <evidence> item to host_node's <evidence> container.
 
     The dradis-projects v4 importer expects:
@@ -371,8 +384,13 @@ def build_repository_xml_with_attachments(report, mapping):
                 if host_node is None:
                     continue
                 _build_evidence_element(
-                    host_node, ids, issue_data, host, mapping,
-                    archive_id, fallback_author,
+                    host_node,
+                    ids,
+                    issue_data,
+                    host,
+                    mapping,
+                    archive_id,
+                    fallback_author,
                 )
 
     # 3. Chart node (only when metadata.chart is present)
@@ -386,7 +404,9 @@ def build_repository_xml_with_attachments(report, mapping):
     issues_el = ET.SubElement(root, "issues")
     for issue_data in report["issues"]:
         archive_id = issue_archive_ids[id(issue_data)]
-        _build_issue_element(issues_el, archive_id, issue_data, mapping, fallback_author)
+        _build_issue_element(
+            issues_el, archive_id, issue_data, mapping, fallback_author
+        )
 
     # 5. Empty top-level elements
     ET.SubElement(root, "tags")

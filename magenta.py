@@ -106,7 +106,7 @@ def main(ctx, config):
     type=click.Path(exists=True, file_okay=False, dir_okay=True, resolve_path=True),
     default=None,
     help="Directory containing the Dradis mapping.json5. "
-         "Defaults to <MAGENTA_HOME>/formats/dradis. Only used with -f dradis.",
+    "Defaults to <MAGENTA_HOME>/formats/dradis. Only used with -f dradis.",
 )
 @click.pass_context
 def report(ctx, pathname, output, format, language, metadata, dradis_templates):
@@ -136,8 +136,10 @@ def report(ctx, pathname, output, format, language, metadata, dradis_templates):
             if base == "dradis-export.zip":
                 format = "dradis"
             elif ext == ".zip":
-                click.echo("error: ambiguous .zip extension; pass -f explicitly "
-                           "(use exact filename 'dradis-export.zip' to autodetect)")
+                click.echo(
+                    "error: ambiguous .zip extension; pass -f explicitly "
+                    "(use exact filename 'dradis-export.zip' to autodetect)"
+                )
                 return
             elif not ext:
                 format = "obsidian"
@@ -196,6 +198,7 @@ def report(ctx, pathname, output, format, language, metadata, dradis_templates):
                 click.echo(color_json(result), file=fd)
             elif format == "textile":
                 from libmagenta.pandoc import convert_from_markdown
+
                 fd.write(convert_from_markdown(result["report"], "textile"))
             else:
                 assert False

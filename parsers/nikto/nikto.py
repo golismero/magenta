@@ -26,13 +26,15 @@ except Exception:
     traceback.print_exc()
 
 # A normalized finding produced by every format reader.
-Finding = namedtuple("Finding", ["host_url", "path", "method", "refs_str", "nikto_id", "msg"])
+Finding = namedtuple(
+    "Finding", ["host_url", "path", "method", "refs_str", "nikto_id", "msg"]
+)
 
 # --- reference token patterns -------------------------------------------------
 # Specific-vulnerability identifiers (go in the per-finding "cve" column).
 _CVE_RE = re.compile(r"^CVE-\d{4}-\d+$")
-_MS_RE = re.compile(r"^MS\d{2}-\d+$")               # Microsoft bulletins, e.g. MS00-078
-_CNVD_RE = re.compile(r"^CNVD(?:-C)?-\d{4}-\d+$")   # incl. the -C- sub-series
+_MS_RE = re.compile(r"^MS\d{2}-\d+$")  # Microsoft bulletins, e.g. MS00-078
+_CNVD_RE = re.compile(r"^CNVD(?:-C)?-\d{4}-\d+$")  # incl. the -C- sub-series
 _OSVDB_RE = re.compile(r"^OSVDB-(\d+)$", re.I)
 # General-concept / other taxonomy (go in issue-level taxonomy only).
 _CWE_RE = re.compile(r"^CWE-\d+$")
@@ -130,10 +132,14 @@ def classify_references(refs_str, nikto_id=None):
     cve, taxonomy, references = [], [], []
     if refs_str:
         for raw in re.split(r"[\s,]+", refs_str.strip()):
-            tok = raw.strip().strip('"\'')
+            tok = raw.strip().strip("\"'")
             if tok:
                 _classify_token(tok, nikto_id, cve, taxonomy, references)
-    return {"cve": _dedup(cve), "taxonomy": _dedup(taxonomy), "references": _dedup(references)}
+    return {
+        "cve": _dedup(cve),
+        "taxonomy": _dedup(taxonomy),
+        "references": _dedup(references),
+    }
 
 
 def _classify_token(tok, nikto_id, cve, taxonomy, references):
@@ -189,7 +195,7 @@ def _classify_token(tok, nikto_id, cve, taxonomy, references):
         return
     m = _MSKB_RE.match(tok)
     if m:
-        taxonomy.append("KB" + m.group(1))    # normalize MSKB:Q<n> -> KB<n>
+        taxonomy.append("KB" + m.group(1))  # normalize MSKB:Q<n> -> KB<n>
         return
     if _BID_RE.match(tok):
         return  # dead taxonomy, no shipped map; drop (known class)
@@ -202,7 +208,7 @@ def _classify_token(tok, nikto_id, cve, taxonomy, references):
 
 
 def build_issues(findings):
-    by_host = {}            # host_url -> list[ {path, cve, msg} ]
+    by_host = {}  # host_url -> list[ {path, cve, msg} ]
     all_taxonomy = []
     all_references = []
     affects = []
@@ -236,7 +242,6 @@ def build_issues(findings):
     if not issue["references"]:
         del issue["references"]
     return [issue]
-
 
 
 # Hardened parser for untrusted tool output: no external entity resolution,
@@ -342,7 +347,13 @@ def read_csv(input_data):
         if len(row) < 7:
             continue  # blank/short line
         hostname, ip, port, col4, method, uri, msg = (
-            row[0], row[1], row[2], row[3], row[4], row[5], row[6]
+            row[0],
+            row[1],
+            row[2],
+            row[3],
+            row[4],
+            row[5],
+            row[6],
         )
         # Host-start rows have empty method+uri (banner sits in col7). Skip.
         if not method and not uri:
@@ -366,7 +377,7 @@ def read_csv(input_data):
 
 def _path_from_url(url, host_url):
     if url and url.startswith(host_url):
-        return url[len(host_url):] or "/"
+        return url[len(host_url) :] or "/"
     return url or "/"
 
 

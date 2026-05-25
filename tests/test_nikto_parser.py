@@ -52,7 +52,9 @@ class TestClassifyCore(unittest.TestCase):
             "CVE-2002-0599,https://sourceforge.net/projects/blahzdns/"
         )
         self.assertEqual(out["cve"], ["CVE-2002-0599"])
-        self.assertEqual(out["references"], ["https://sourceforge.net/projects/blahzdns/"])
+        self.assertEqual(
+            out["references"], ["https://sourceforge.net/projects/blahzdns/"]
+        )
 
     def test_dedup_preserves_order(self):
         out = nikto.classify_references("CVE-2001-0001 CVE-2001-0001 CVE-2001-0002")
@@ -77,6 +79,7 @@ class TestOsvdb(unittest.TestCase):
     def test_osvdb_0_does_not_count_toward_hitrate_guard(self):
         import io as _io
         import contextlib
+
         nikto.reset_osvdb_stats()
         for _ in range(12):
             nikto.classify_references("OSVDB-0")  # informational, not a lookup
@@ -88,6 +91,7 @@ class TestOsvdb(unittest.TestCase):
     def test_hitrate_guard_warns_when_none_map(self):
         import io as _io
         import contextlib
+
         nikto.reset_osvdb_stats()
         for n in range(12):
             nikto.classify_references("OSVDB-99000%d" % n)  # all unmapped
@@ -100,6 +104,7 @@ class TestOsvdb(unittest.TestCase):
     def test_hitrate_guard_silent_when_some_map(self):
         import io as _io
         import contextlib
+
         nikto.reset_osvdb_stats()
         nikto.classify_references("OSVDB-11144")  # maps
         for n in range(5):
@@ -198,10 +203,7 @@ class TestReadCsv(unittest.TestCase):
         self.assertEqual(f[0].refs_str, "CVE-2002-0764")
 
     def test_csv_injection_apostrophe_stripped(self):
-        data = (
-            '"Nikto - v2.6.0"\n'
-            '"h","1.2.3.4","80","\'=CVE-2021-1","GET","/x","msg"\n'
-        )
+        data = '"Nikto - v2.6.0"\n"h","1.2.3.4","80","\'=CVE-2021-1","GET","/x","msg"\n'
         f = nikto.read_csv(data)
         self.assertEqual(f[0].refs_str, "=CVE-2021-1")
 
@@ -250,39 +252,55 @@ class TestReadXml(unittest.TestCase):
         self.assertEqual(len(f), 2)
         hosts = sorted(x.host_url for x in f)
         self.assertEqual(hosts, ["http://b.example:80", "https://a.example:443"])
-        self.assertEqual(
-            sorted(x.refs_str for x in f), ["CVE-2021-1", "CVE-2021-2"]
-        )
+        self.assertEqual(sorted(x.refs_str for x in f), ["CVE-2021-1", "CVE-2021-2"])
 
     def test_doubled_niktoscan_wrapper(self):
         doubled = self.OLD.replace(
             '<niktoscan nxmlversion="1.2">',
             '<niktoscan><niktoscan nxmlversion="1.2">',
-        ).replace("</scandetails></niktoscan>", "</scandetails></niktoscan></niktoscan>")
+        ).replace(
+            "</scandetails></niktoscan>", "</scandetails></niktoscan></niktoscan>"
+        )
         f = nikto.read_xml(doubled)
         self.assertEqual(len(f), 1)
         self.assertEqual(f[0].path, "/phorum/admin/footer.php")
 
 
 class TestReadJson(unittest.TestCase):
-    MODERN = json.dumps([
-        {
-            "host": "a.example", "ip": "10.0.0.1", "port": "443",
-            "server_banner": "Apache",
-            "vulnerabilities": [
-                {"id": "000100", "references": "CVE-2021-1",
-                 "method": "GET", "url": "https://a.example:443/a", "msg": "m1"},
-            ],
-        },
-        {
-            "host": "b.example", "ip": "10.0.0.2", "port": "80",
-            "server_banner": "nginx",
-            "vulnerabilities": [
-                {"id": "000200", "references": "", "method": "GET",
-                 "url": "http://b.example:80/b", "msg": "m2"},
-            ],
-        },
-    ])
+    MODERN = json.dumps(
+        [
+            {
+                "host": "a.example",
+                "ip": "10.0.0.1",
+                "port": "443",
+                "server_banner": "Apache",
+                "vulnerabilities": [
+                    {
+                        "id": "000100",
+                        "references": "CVE-2021-1",
+                        "method": "GET",
+                        "url": "https://a.example:443/a",
+                        "msg": "m1",
+                    },
+                ],
+            },
+            {
+                "host": "b.example",
+                "ip": "10.0.0.2",
+                "port": "80",
+                "server_banner": "nginx",
+                "vulnerabilities": [
+                    {
+                        "id": "000200",
+                        "references": "",
+                        "method": "GET",
+                        "url": "http://b.example:80/b",
+                        "msg": "m2",
+                    },
+                ],
+            },
+        ]
+    )
     # 2.5.0 hand-built, multi-host -> invalid JSON (two objects, no array/commas)
     OLD_FRAGMENT = (
         '{"host":"a.example","ip":"10.0.0.1","port":"443","banner":"Apache",'
@@ -309,6 +327,7 @@ class TestReadJson(unittest.TestCase):
     def test_unrepairable_warns_and_returns_empty(self):
         import io as _io2
         import contextlib as _cl2
+
         buf = _io2.StringIO()
         with _cl2.redirect_stderr(buf):
             out = nikto.read_json("{ totally not json ][")
@@ -330,15 +349,19 @@ class TestBuildIssues(unittest.TestCase):
         self.assertEqual(iss["severity"], "high")
         self.assertEqual(iss["affects"], ["http://h:80/a"])
         self.assertEqual(iss["taxonomy"], ["CVE-2021-1"])
-        self.assertEqual(iss["issues"], {"http://h:80": [
-            {"path": "/a", "cve": ["CVE-2021-1"], "msg": "m1"}]})
+        self.assertEqual(
+            iss["issues"],
+            {"http://h:80": [{"path": "/a", "cve": ["CVE-2021-1"], "msg": "m1"}]},
+        )
 
     def test_untagged_finding_dropped_by_default(self):
         findings = [self._f("http://h:80", "/x", "", "interesting file", nid="000001")]
         self.assertEqual(nikto.build_issues(findings), [])
 
     def test_ca_finding_reported_with_cwe_taxonomy_empty_cve_column(self):
-        findings = [self._f("http://h:80", "/y.aspx", "CA-2000-02", "xss", nid="000767")]
+        findings = [
+            self._f("http://h:80", "/y.aspx", "CA-2000-02", "xss", nid="000767")
+        ]
         issues = nikto.build_issues(findings)
         self.assertEqual(len(issues), 1)
         self.assertEqual(issues[0]["taxonomy"], ["CWE-79"])
@@ -346,7 +369,9 @@ class TestBuildIssues(unittest.TestCase):
         self.assertEqual(issues[0]["issues"]["http://h:80"][0]["cve"], [])
 
     def test_url_reference_goes_to_issue_references(self):
-        findings = [self._f("http://h:80", "/z", "CVE-2021-9 https://ref.example/x", "m")]
+        findings = [
+            self._f("http://h:80", "/z", "CVE-2021-9 https://ref.example/x", "m")
+        ]
         issues = nikto.build_issues(findings)
         self.assertEqual(issues[0]["references"], ["https://ref.example/x"])
 
@@ -357,7 +382,9 @@ class TestBuildIssues(unittest.TestCase):
             self._f("https://k:443", "/b", "CVE-2021-2", "m2"),
         ]
         issues = nikto.build_issues(findings)
-        self.assertEqual(set(issues[0]["issues"].keys()), {"http://h:80", "https://k:443"})
+        self.assertEqual(
+            set(issues[0]["issues"].keys()), {"http://h:80", "https://k:443"}
+        )
         self.assertEqual(len(issues[0]["issues"]["http://h:80"]), 1)
 
 
@@ -365,7 +392,9 @@ class TestMainDispatch(unittest.TestCase):
     def _run(self, stdin_text):
         p = subprocess.run(
             [_sys.executable, _PARSER],
-            input=stdin_text, capture_output=True, text=True,
+            input=stdin_text,
+            capture_output=True,
+            text=True,
         )
         return p
 
@@ -379,8 +408,9 @@ class TestMainDispatch(unittest.TestCase):
     def test_csv_end_to_end(self):
         p = self._run(TestReadCsv.NEW)
         out = json.loads(p.stdout)
-        self.assertEqual(out[0]["issues"]["https://victim.example:443"][0]["cve"],
-                         ["CVE-2002-0764"])
+        self.assertEqual(
+            out[0]["issues"]["https://victim.example:443"][0]["cve"], ["CVE-2002-0764"]
+        )
 
     def test_json_end_to_end(self):
         p = self._run(TestReadJson.MODERN)
@@ -399,12 +429,14 @@ class TestMainDispatch(unittest.TestCase):
 
 class TestSchema(unittest.TestCase):
     def test_cve_is_array_in_schema(self):
-        path = os.path.join(_HERE, "..", "templates", "nikto",
-                            "multiple_nikto_issues.schema.json")
+        path = os.path.join(
+            _HERE, "..", "templates", "nikto", "multiple_nikto_issues.schema.json"
+        )
         with open(path) as fd:
             schema = json.load(fd)
-        cve = (schema["properties"]["issues"]["additionalProperties"]
-               ["items"]["properties"]["cve"])
+        cve = schema["properties"]["issues"]["additionalProperties"]["items"][
+            "properties"
+        ]["cve"]
         self.assertEqual(cve["type"], "array")
         self.assertEqual(cve["items"]["type"], "string")
 
@@ -413,6 +445,7 @@ class TestXmlHardening(unittest.TestCase):
     def test_truncated_xml_returns_empty_with_warning(self):
         import io as _io3
         import contextlib as _cl3
+
         bad = '<?xml version="1.0" ?><niktoscan><scandetails><item><uri>/x'
         buf = _io3.StringIO()
         with _cl3.redirect_stderr(buf):
@@ -450,18 +483,26 @@ class TestTokenRobustness(unittest.TestCase):
 
 class TestNiktoMerger(unittest.TestCase):
     def test_merge_preserves_issues_key(self):
-        merger = os.path.join(_HERE, "..", "templates", "nikto",
-                              "multiple_nikto_issues.py")
+        merger = os.path.join(
+            _HERE, "..", "templates", "nikto", "multiple_nikto_issues.py"
+        )
         issue = {
-            "tools": ["nikto"], "template": "multiple_nikto_issues",
-            "severity": "high", "affects": ["http://h:80/a"],
+            "tools": ["nikto"],
+            "template": "multiple_nikto_issues",
+            "severity": "high",
+            "affects": ["http://h:80/a"],
             "taxonomy": ["CVE-2021-1"],
-            "issues": {"http://h:80": [{"path": "/a", "cve": ["CVE-2021-1"], "msg": "m"}]},
+            "issues": {
+                "http://h:80": [{"path": "/a", "cve": ["CVE-2021-1"], "msg": "m"}]
+            },
         }
         env = dict(os.environ, MAGENTA_HOME=os.path.abspath(os.path.join(_HERE, "..")))
         p = subprocess.run(
-            [_sys.executable, merger], input=json.dumps([issue]),
-            capture_output=True, text=True, env=env,
+            [_sys.executable, merger],
+            input=json.dumps([issue]),
+            capture_output=True,
+            text=True,
+            env=env,
         )
         self.assertEqual(p.returncode, 0, p.stderr)
         out = json.loads(p.stdout)

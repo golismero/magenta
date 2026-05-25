@@ -170,9 +170,7 @@ additional_references = {
     "opossum": ["https://nvd.nist.gov/vuln/detail/CVE-2025-49812"],
     "LOGJAM-common_primes": ["https://weakdh.org/"],
     "intermediate_cert_badOCSP": ["https://www.rfc-editor.org/rfc/rfc6960"],
-    "FS_KEMs": [
-        "https://datatracker.ietf.org/doc/draft-ietf-tls-hybrid-design/"
-    ],
+    "FS_KEMs": ["https://datatracker.ietf.org/doc/draft-ietf-tls-hybrid-design/"],
 }
 
 # Legacy testssl IDs renamed in v3.2.0. Aliased here so older scan files
@@ -354,9 +352,11 @@ for key, results in items.items():
         # the overall BEAST severity (which may arrive before or after).
         if id.startswith("BEAST_CBC_"):
             proto_to_version = {"SSL3": "SSLv3", "TLS1": "TLSv1.0"}
-            version = proto_to_version.get(id[len("BEAST_CBC_"):])
+            version = proto_to_version.get(id[len("BEAST_CBC_") :])
             if version is not None:
-                ciphers = [c.strip() for c in item.get("finding", "").split() if c.strip()]
+                ciphers = [
+                    c.strip() for c in item.get("finding", "").split() if c.strip()
+                ]
                 if ciphers:
                     beast_cbc_ciphers.setdefault(version, []).extend(ciphers)
             continue
@@ -450,12 +450,14 @@ for key, results in items.items():
                     status = "preferred"
                 else:
                     status = "available"
-                bad_ciphers.append({
-                    "version": version,
-                    "cipher": cipher,
-                    "severity": beast_sev,
-                    "status": status,
-                })
+                bad_ciphers.append(
+                    {
+                        "version": version,
+                        "cipher": cipher,
+                        "severity": beast_sev,
+                        "status": status,
+                    }
+                )
                 seen.add((version, cipher))
 
     # If the issue is empty, this means testssl.sh did not find anything to report on this host.
