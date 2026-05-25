@@ -52,7 +52,7 @@ A per-finding **template-selection seam** in `build_issues` (a function returnin
 ## 4. Format & version detection
 
 - **Empty input** → `[]` (with stderr note, as today).
-- **XML** — input starts with `<?xml`. One structural reader: parse, strip namespaces, then **recursively find every `<item>`** regardless of `niktoscan` vs `niktoscans` nesting (single **or** doubled wrapper). Tolerate Nikto's not-well-formed XML by applying dradis-nikto's wrapping workaround only if a strict parse fails. Per item: read `id`/`method` attributes; `description`, `uri`, `namelink`, `iplink` children; references from the **`osvdblink` attribute** (old) **or** the **`<references>` child** (2.5.0+), whichever exists. Build the per-host base URL from `scandetails` (`targethostname`/`targetip` + `targetport`; ssl inferred from port). **Drop** the old `nxmlversion=="1.2"` and single-`scandetails` assertions. Handle multiple hosts.
+- **XML** — input starts with `<?xml`. Parsed with a **hardened `lxml` parser** (`resolve_entities=False, no_network=True, load_dtd=False, huge_tree=False`) since this is untrusted tool output — neutralizes XXE / billion-laughs (entity refs stay unexpanded; `remove_namespaces` skips `_Entity` nodes). One structural reader: parse, strip namespaces, then **recursively find every `<item>`** regardless of `niktoscan` vs `niktoscans` nesting (single **or** doubled wrapper). Tolerate Nikto's not-well-formed XML by applying dradis-nikto's wrapping workaround only if a strict parse fails; if it *still* fails, emit a loud warning and return `[]` (never an uncaught traceback). Per item: read `id`/`method` attributes; `description`, `uri`, `namelink`, `iplink` children; references from the **`osvdblink` attribute** (old) **or** the **`<references>` child** (2.5.0+), whichever exists. Build the per-host base URL from `scandetails` (`targethostname`/`targetip` + `targetport`; ssl inferred from port). **Drop** the old `nxmlversion=="1.2"` and single-`scandetails` assertions. Handle multiple hosts.
 - **JSON** — input starts with `[` or `{`. Prefer `json.loads`. `main`/2.6.0 = array of host objects (`server_banner`, `ssl_info`, `vulnerabilities[]` with `id`/`references`/`method`/`url`/`msg`). If `json.loads` fails, attempt a documented repair for the known 2.5.0 concatenated-fragment shape; if that also fails → **loud warning** + `[]`.
 - **CSV** — first line matches `"Nikto - v…"`. Reader handles: header line, per-host start row (hostname/ip/port/…/banner), and 7-column finding rows (hostname, ip, port, **references-or-OSVDB**, method, uri, msg). Strip the CSV-injection leading `'`. **Skip SSL-info rows** (test id `000137`). Detect old vs new column-4 semantics by token shape (numeric/`OSVDB-` vs free-text refs). Handle multiple host blocks.
 - **Unrecognized** → stderr error + `[]` (as today).
@@ -64,7 +64,8 @@ Tokenize `refs_str` on **whitespace and commas**; strip surrounding quotes/trail
 | Token | Bucket / action |
 |---|---|
 | `CVE-####-…` | `cve` (and issue taxonomy) |
-| `OSVDB-<n>` | look up **`OSVDB:<n>`** (colon) in `osvdb2cve.json` → CVE(s) into `cve`; **unmapped → keep `OSVDB-<n>`** in `cve` |
+| `OSVDB-0` | **informational marker** ("no specific vulnerability") → drop, no tag, not counted in the hit-rate guard. Mirrors the old parser's `OSVDB-0` skip. |
+| `OSVDB-<n>` (n≠0) | look up **`OSVDB:<n>`** (colon) in `osvdb2cve.json` → CVE(s) into `cve`; **unmapped → keep `OSVDB-<n>`** in `cve` |
 | `MS##-###` (bulletin) | `cve` (specific-vuln id) |
 | `CNVD-…` / `CNVD-C-…` | `cve` (verify URL form during impl) |
 | `CWE-…`, `CAPEC-…` | `taxonomy` only (general concept — never the per-finding `cve` column) |
@@ -110,7 +111,8 @@ Per-finding `cve` column = specific-vulnerability identifiers (CVE, MS, CNVD, un
 - Dedup identical `(path, cve, msg)` per host (as today).
 - **Template consolidation:** today the CSV path emits `template:"nikto"`, but the only template that exists is `multiple_nikto_issues` — so CSV findings have pointed at a non-existent template (latent bug). **All three readers use `multiple_nikto_issues`.**
 - **Schema fix:** `templates/nikto/multiple_nikto_issues.schema.json` declares per-finding `cve` as `string`, but it is (and always was) an array. Change the schema to `array of string`. The per-finding column stays labeled "CVE" (now accurate: specific-vuln ids only).
-- `_start` time parsed from XML/JSON when present (best-effort, as today).
+- **Merger fix (pre-existing latent bug):** `templates/nikto/multiple_nikto_issues.py`'s `do_issues_collect()` mutated `merged_dict` in place but never `return`ed it, so the engine set `merged["issues"] = None` and then dropped the key, producing a merged issue that fails schema validation (`'issues' is a required property`). Add `return merged_dict`. This was dormant because nikto previously never emitted a mergeable (tagged) issue — every shipped sample finding was `OSVDB-0` and dropped; the multi-version parser is the first to surface it.
+- **`_start` dropped.** The old parser set `issue["_start"]` to a `datetime`, but (a) nothing in `libmagenta` consumes `_start`, and (b) a `datetime` is not JSON-serializable, so `json.dump` would have crashed whenever `starttime` was present — a latent bug. It is removed in the rewrite (dead code).
 
 ## 7. Testing (TDD)
 

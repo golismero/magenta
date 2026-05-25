@@ -11,7 +11,7 @@
                     "type": "object",
                     "properties": {
                         "path": {"type": "string"},
-                        "cve": {"type": "string"},
+                        "cve": {"type": "array", "items": {"type": "string"}},
                         "msg": {"type": "string"}
                     },
                     "required": ["path", "cve", "msg"]

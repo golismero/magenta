@@ -20,6 +20,7 @@ class NiktoMerger(Merger):
                 for item in value:
                     if item not in array:
                         array.append(item)
+        return merged_dict
 
     def do_issues_cleanup(self, merged_dict):
         return merged_dict
