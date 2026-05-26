@@ -44,6 +44,38 @@ _MSKB_RE = re.compile(r"^MSKB:Q?(\d+)$", re.I)
 _BID_RE = re.compile(r"^BID-\d+$", re.I)
 _URL_RE = re.compile(r"^https?://", re.I)
 
+# Unicode hyphens/dashes Nikto's DB occasionally uses inside ids (e.g.
+# "CVE‑2002‑1929" with U+2011). Normalized to ASCII "-" before matching so the
+# id regexes above still fire instead of dropping a real CVE as "unknown".
+_UNICODE_HYPHENS = re.compile("[‐-―−]")
+
+# Taxonomy-derived URLs: a URL that is merely a linkified id collapses to that
+# id (the reporter linkifies tags itself), instead of becoming a standalone
+# reference. Order matters; host-specific patterns avoid CWE/CAPEC confusion.
+# Each entry: (compiled regex, bucket) where bucket is "cve"/"taxonomy"/"osvdb";
+# the captured group is the id payload.
+_URL_TAXONOMY_PATTERNS = [
+    (re.compile(r"^https?://cwe\.mitre\.org/data/definitions/(\d+)\.html", re.I),
+     "taxonomy", "CWE-"),
+    (re.compile(r"^https?://capec\.mitre\.org/data/definitions/(\d+)\.html", re.I),
+     "taxonomy", "CAPEC-"),
+    (re.compile(r"^https?://(?:[\w.-]+\.)?vulners\.com/osvdb/OSVDB:(\d+)", re.I),
+     "osvdb", ""),
+    (re.compile(
+        r"^https?://(?:nvd\.nist\.gov|(?:www\.)?cve\.(?:mitre\.org|org))/\S*?"
+        r"(CVE-\d{4}-\d+)", re.I),
+     "cve", ""),
+]
+
+
+def _url_to_tag(url):
+    """Return (bucket, value) if url is a linkified taxonomy id, else None."""
+    for pattern, bucket, prefix in _URL_TAXONOMY_PATTERNS:
+        m = pattern.match(url)
+        if m:
+            return bucket, prefix + m.group(1).upper()
+    return None
+
 # Token-keyed overrides for known-bad upstream references. Each maps a token to
 # (cve, taxonomy, references) contributions. Keyed on the token (not nikto_id),
 # because CSV output carries no id column. Each token is unique to its test.
@@ -145,7 +177,15 @@ def classify_references(refs_str, nikto_id=None):
 def _classify_token(tok, nikto_id, cve, taxonomy, references):
     # URLs first — never strip trailing punctuation from a URL.
     if _URL_RE.match(tok):
-        references.append(tok)
+        collapsed = _url_to_tag(tok)
+        if collapsed is None:
+            references.append(tok)
+        elif collapsed[0] == "cve":
+            cve.append(collapsed[1])
+        elif collapsed[0] == "taxonomy":
+            taxonomy.append(collapsed[1])
+        elif collapsed[0] == "osvdb":
+            cve.extend(_resolve_osvdb(collapsed[1]))
         return
 
     # Strip trailing sentence punctuation before any matching, so that e.g.
@@ -154,6 +194,10 @@ def _classify_token(tok, nikto_id, cve, taxonomy, references):
     tok = tok.rstrip(".;:")
     if not tok:
         return
+
+    # Normalize Unicode hyphens to ASCII "-" so ids like "CVE‑2002‑1929"
+    # (U+2011) match the scheme regexes instead of being dropped as unknown.
+    tok = _UNICODE_HYPHENS.sub("-", tok)
 
     # Token-keyed overrides for known-bad upstream references.
     if tok in _TOKEN_OVERRIDES:
@@ -343,31 +387,51 @@ def read_csv(input_data):
     fd = io.StringIO(input_data)
     fd.readline()  # discard the '"Nikto - v..."' header line
     findings = []
+    # Most recent host-start row's (ip, port). Used to recover the port for the
+    # 2.1.5 6-field finding rows, where a runtime bug merged ip+SCALAR(...)+port
+    # into one cell and dropped the port column from finding rows.
+    last_host = None
     for row in csv.reader(fd):
-        if len(row) < 7:
+        n = len(row)
+        if n >= 7:
+            hostname, ip, port, col_ref, method, uri, msg = (
+                row[0],
+                row[1],
+                row[2],
+                row[3],
+                row[4],
+                row[5],
+                row[6],
+            )
+            # Host-start rows have empty method+uri (banner sits in col7).
+            if not method and not uri:
+                last_host = (ip, port)
+                continue
+        elif n == 6:
+            # 2.1.5 port-merge bug: hostname, ip+junk+port, OSVDB, method, uri, msg.
+            hostname, _ip_junk, col_ref, method, uri, msg = (
+                row[0],
+                row[1],
+                row[2],
+                row[3],
+                row[4],
+                row[5],
+            )
+            if not method and not uri:
+                continue
+            ip, port = last_host if last_host else ("", "80")
+        else:
             continue  # blank/short line
-        hostname, ip, port, col4, method, uri, msg = (
-            row[0],
-            row[1],
-            row[2],
-            row[3],
-            row[4],
-            row[5],
-            row[6],
-        )
-        # Host-start rows have empty method+uri (banner sits in col7). Skip.
-        if not method and not uri:
-            continue
-        col4 = _strip_csv_injection(col4)
-        # SSL-info rows (2.6.0+) use the pseudo test id 000137 in col4. Skip.
-        if col4 == "000137":
+        col_ref = _strip_csv_injection(col_ref)
+        # SSL-info rows (2.6.0+) use the pseudo test id 000137 in the ref cell.
+        if col_ref == "000137":
             continue
         findings.append(
             Finding(
                 host_url=_host_url(hostname, ip, port),
                 path=uri,
                 method=method,
-                refs_str=col4,
+                refs_str=col_ref,
                 nikto_id=None,  # CSV has no id column
                 msg=msg,
             )

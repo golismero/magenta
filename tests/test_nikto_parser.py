@@ -186,6 +186,13 @@ class TestReadCsv(unittest.TestCase):
         '"victim.example","10.0.0.1","443","CVE-2002-0764","GET","/phorum/admin/footer.php","XSS"\n'
         '"victim.example","10.0.0.1","443","000137","GET","/","SSL Certificate Subject: CN=x"\n'
     )
+    # 2.1.5 runtime bug: finding rows merged ip+SCALAR(...)+port into one cell,
+    # so they parse to 6 fields (no port column). Replicates samples/nikto.csv.
+    BUGGY_2_1_5 = (
+        '"Nikto - v2.1.5"\n'
+        '"example.com","93.184.216.34","80","","","","ECS (bsa/EB18)"\n'
+        '"example.com","93.184.216.34SCALAR(0x557ad8349880)"80","OSVDB-3268","GET","/icons/","Directory indexing found."\n'
+    )
 
     def test_old_csv_host_and_finding(self):
         f = nikto.read_csv(self.OLD)
@@ -209,6 +216,17 @@ class TestReadCsv(unittest.TestCase):
 
     def test_empty_csv_returns_empty(self):
         self.assertEqual(nikto.read_csv('"Nikto - v2.1.5"\n'), [])
+
+    def test_buggy_6field_recovers_port_and_refs(self):
+        # The 6-field finding row has no port; it is recovered from the
+        # preceding host-start row, and col 2 carries the OSVDB ref.
+        f = nikto.read_csv(self.BUGGY_2_1_5)
+        self.assertEqual(len(f), 1)
+        self.assertEqual(f[0].host_url, "http://example.com:80")
+        self.assertEqual(f[0].path, "/icons/")
+        self.assertEqual(f[0].method, "GET")
+        self.assertEqual(f[0].refs_str, "OSVDB-3268")
+        self.assertEqual(f[0].msg, "Directory indexing found.")
 
 
 class TestReadXml(unittest.TestCase):
@@ -479,6 +497,56 @@ class TestTokenRobustness(unittest.TestCase):
     def test_hardcode_applies_with_trailing_punctuation(self):
         out = nikto.classify_references("CA-2000-02:")
         self.assertEqual(out["taxonomy"], ["CWE-79"])
+
+
+class TestUnicodeHyphen(unittest.TestCase):
+    def test_u2011_cve_normalized(self):
+        # Nikto's DB has CVEs written with U+2011 non-breaking hyphens.
+        out = nikto.classify_references("CVE‑2002‑1929")
+        self.assertEqual(out["cve"], ["CVE-2002-1929"])
+
+    def test_endash_cve_normalized(self):
+        out = nikto.classify_references("CVE–2002–1929")
+        self.assertEqual(out["cve"], ["CVE-2002-1929"])
+
+    def test_unicode_hyphen_in_mixed_token_string(self):
+        out = nikto.classify_references("CVE‑2002‑1929,CVE-2000-0001")
+        self.assertEqual(out["cve"], ["CVE-2002-1929", "CVE-2000-0001"])
+
+
+class TestUrlTaxonomyCollapse(unittest.TestCase):
+    def test_cwe_url_collapses_to_taxonomy(self):
+        out = nikto.classify_references(
+            "https://cwe.mitre.org/data/definitions/297.html"
+        )
+        self.assertEqual(out["taxonomy"], ["CWE-297"])
+        self.assertEqual(out["references"], [])
+
+    def test_capec_url_collapses_to_taxonomy(self):
+        out = nikto.classify_references(
+            "https://capec.mitre.org/data/definitions/66.html"
+        )
+        self.assertEqual(out["taxonomy"], ["CAPEC-66"])
+        self.assertEqual(out["references"], [])
+
+    def test_vulners_osvdb_url_collapses_and_resolves(self):
+        # OSVDB:11144 -> CVE-2002-0764 via osvdb2cve.json.
+        out = nikto.classify_references("https://vulners.com/osvdb/OSVDB:11144")
+        self.assertEqual(out["cve"], ["CVE-2002-0764"])
+        self.assertEqual(out["references"], [])
+
+    def test_nvd_cve_url_collapses_to_cve(self):
+        out = nikto.classify_references(
+            "https://nvd.nist.gov/vuln/detail/CVE-2021-1"
+        )
+        self.assertEqual(out["cve"], ["CVE-2021-1"])
+        self.assertEqual(out["references"], [])
+
+    def test_unrelated_url_still_reference(self):
+        out = nikto.classify_references("https://example.com/advisory/123")
+        self.assertEqual(out["references"], ["https://example.com/advisory/123"])
+        self.assertEqual(out["cve"], [])
+        self.assertEqual(out["taxonomy"], [])
 
 
 class TestNiktoMerger(unittest.TestCase):
