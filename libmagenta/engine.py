@@ -593,24 +593,36 @@ class MagentaReporter:
     # Try to generate a URL for a taxonomy tag. Returns None if not known.
     #
     # The following taxonomies are supported:
-    #   - MITRE Common Vulnerabilities and Exposures (CVE)
-    #   - MITRE Common Weakness Enumeration (CWE)
-    #   - MITRE Common Attack Pattern Enumeration and Classification (CAPEC)
-    #   - Chinese National Vulnerability Database (CNVD)
-    #   - Japanese Vulnerability Database (JVNDB)
-    #   - Russian Federation Data Bank of Information Security Threats (BDU)
-    #   - Ubuntu Security Notices (USN)
-    #   - Red Hat Security Announcements (RHSA)
-    #   - Debian Security Announcements (DSA)
-    #   - Microsoft Knowledge Base (KB)
-    #   - Microsoft Security Bulletins (MS)
-    #   - Mozilla Foundation Security Advisories (MFSA)
-    #   - WPScan Wordpress Vulnerability Database (WPVDB)
-    #   - Exploit DB
-    #   - 1337 Day DB
-    #   - Vulners Security Database
-    #   - Open Bug Bounty Reports
-    #   - IETF Request For Comments (RFC)
+    #
+    #   * General vulnerability databases:
+    #     - MITRE Common Vulnerabilities and Exposures (CVE)
+    #     - MITRE Common Weakness Enumeration (CWE)
+    #     - MITRE Common Attack Pattern Enumeration and Classification (CAPEC)
+    #     - Chinese National Vulnerability Database (CNVD)
+    #     - Japanese Vulnerability Database (JVNDB)
+    #     - Russian Federation Data Bank of Information Security Threats (BDU)
+    #
+    #   * Vendor-specific advisories:
+    #     - Ubuntu Security Notices (USN)
+    #     - Red Hat Security Announcements (RHSA)
+    #     - Debian Security Announcements (DSA)
+    #     - Microsoft Knowledge Base (KB)
+    #     - Microsoft Security Bulletins (MS)
+    #     - Mozilla Foundation Security Advisories (MFSA)
+    #     - WPScan Wordpress Vulnerability Database (WPVDB)
+    #     - Rust Security Advisory Database (RUSTSEC)
+    #
+    #   * Exploit databases:
+    #     - Exploit DB
+    #     - 1337 Day DB
+    #
+    #   * Aggregator databases:
+    #     - Synk Vulnerability Database
+    #     - Vulners Security Database
+    #     - Open Bug Bounty Reports
+    #
+    #   * Misc:
+    #     - IETF Request For Comments (RFC)
     #
     @staticmethod
     def url_from_tag(tag):
@@ -663,6 +675,8 @@ class MagentaReporter:
             )
         elif tag.startswith("WPVDB-ID:"):
             url = "https://wpscan.com/vulnerability/" + tag[9:].lower() + "/"
+        elif tag.startswith("RUSTSEC-"):
+            url = "https://rustsec.org/advisories/" + tag + ".html"
         elif tag.startswith("EDB-ID:"):
             url = "https://www.exploit-db.com/exploits/" + tag[7:]
         elif tag.startswith("1337DAY-ID-"):
@@ -679,6 +693,8 @@ class MagentaReporter:
             url = "https://vulners.com/securityvulns/" + tag
         elif tag.startswith("WPEX-ID:"):
             url = "https://vulners.com/wpexploit/" + tag
+        elif tag.startswith("SYNK-"):
+            url = "https://security.snyk.io/vuln/" + tag
         elif tag.startswith("OBB-"):
             url = "https://www.openbugbounty.org/reports/" + tag[4:] + "/"
         elif tag.startswith("RFC "):
