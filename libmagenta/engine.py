@@ -617,6 +617,7 @@ class MagentaReporter:
     #     - 1337 Day DB
     #
     #   * Aggregator databases:
+    #     - Synk Vulnerability Database
     #     - Vulners Security Database
     #     - Open Bug Bounty Reports
     #
@@ -692,6 +693,8 @@ class MagentaReporter:
             url = "https://vulners.com/securityvulns/" + tag
         elif tag.startswith("WPEX-ID:"):
             url = "https://vulners.com/wpexploit/" + tag
+        elif tag.startswith("SYNK-"):
+            url = "https://security.snyk.io/vuln/" + tag
         elif tag.startswith("OBB-"):
             url = "https://www.openbugbounty.org/reports/" + tag[4:] + "/"
         elif tag.startswith("RFC "):
