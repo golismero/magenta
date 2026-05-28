@@ -55,16 +55,30 @@ _UNICODE_HYPHENS = re.compile("[‐-―−]")
 # Each entry: (compiled regex, bucket) where bucket is "cve"/"taxonomy"/"osvdb";
 # the captured group is the id payload.
 _URL_TAXONOMY_PATTERNS = [
-    (re.compile(r"^https?://cwe\.mitre\.org/data/definitions/(\d+)\.html", re.I),
-     "taxonomy", "CWE-"),
-    (re.compile(r"^https?://capec\.mitre\.org/data/definitions/(\d+)\.html", re.I),
-     "taxonomy", "CAPEC-"),
-    (re.compile(r"^https?://(?:[\w.-]+\.)?vulners\.com/osvdb/OSVDB:(\d+)", re.I),
-     "osvdb", ""),
-    (re.compile(
-        r"^https?://(?:nvd\.nist\.gov|(?:www\.)?cve\.(?:mitre\.org|org))/\S*?"
-        r"(CVE-\d{4}-\d+)", re.I),
-     "cve", ""),
+    (
+        re.compile(r"^https?://cwe\.mitre\.org/data/definitions/(\d+)\.html", re.I),
+        "taxonomy",
+        "CWE-",
+    ),
+    (
+        re.compile(r"^https?://capec\.mitre\.org/data/definitions/(\d+)\.html", re.I),
+        "taxonomy",
+        "CAPEC-",
+    ),
+    (
+        re.compile(r"^https?://(?:[\w.-]+\.)?vulners\.com/osvdb/OSVDB:(\d+)", re.I),
+        "osvdb",
+        "",
+    ),
+    (
+        re.compile(
+            r"^https?://(?:nvd\.nist\.gov|(?:www\.)?cve\.(?:mitre\.org|org))/\S*?"
+            r"(CVE-\d{4}-\d+)",
+            re.I,
+        ),
+        "cve",
+        "",
+    ),
 ]
 
 
@@ -75,6 +89,7 @@ def _url_to_tag(url):
         if m:
             return bucket, prefix + m.group(1).upper()
     return None
+
 
 # Token-keyed overrides for known-bad upstream references. Each maps a token to
 # (cve, taxonomy, references) contributions. Keyed on the token (not nikto_id),

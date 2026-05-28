@@ -29,6 +29,7 @@ from .template import (
     http2md,
     CustomTemplateLoader,
 )
+from .taxonomy import normalize_tag, url_from_tag, tag_from_url
 
 ######################################################################################################################
 
@@ -542,14 +543,27 @@ class MagentaReporter:
         )
         jsonschema.validate(issue, self.schemas[issue["template"]])
         if "references" in issue:
+            # Validate each reference URL, and in the same pass promote any URL
+            # that encodes a known taxonomy tag — the references section should
+            # only carry links that aren't already represented in the taxonomy.
+            refs_kept = []
+            tags_promoted = []
             for url in issue["references"]:
                 try:
                     urllib.parse.urlparse(url)
                 except Exception:
                     raise AssertionError("Malformed reference URL: '%s'" % url)
+                tag = tag_from_url(url)
+                if tag is None:
+                    refs_kept.append(url)
+                else:
+                    tags_promoted.append(tag)
+            issue["references"] = refs_kept
+            if tags_promoted:
+                issue["taxonomy"] = issue.get("taxonomy", []) + tags_promoted
         issue["affects"] = sorted(issue["affects"])
-        if "tqxonomy" in issue:
-            issue["taxonomy"] = sorted(issue["taxonomy"])
+        if "taxonomy" in issue:
+            issue["taxonomy"] = sorted({normalize_tag(t) for t in issue["taxonomy"]})
         if "references" in issue:
             issue["references"] = sorted(issue["references"])
 
@@ -589,128 +603,6 @@ class MagentaReporter:
 
         # Return a copy of the sanitized metadata.
         return metadata
-
-    # Try to generate a URL for a taxonomy tag. Returns None if not known.
-    #
-    # The following taxonomies are supported:
-    #
-    #   * General vulnerability databases:
-    #     - MITRE Common Vulnerabilities and Exposures (CVE)
-    #     - MITRE Common Weakness Enumeration (CWE)
-    #     - MITRE Common Attack Pattern Enumeration and Classification (CAPEC)
-    #     - Chinese National Vulnerability Database (CNVD)
-    #     - Japanese Vulnerability Database (JVNDB)
-    #     - Russian Federation Data Bank of Information Security Threats (BDU)
-    #
-    #   * Vendor-specific advisories:
-    #     - Ubuntu Security Notices (USN)
-    #     - Red Hat Security Announcements (RHSA)
-    #     - Debian Security Announcements (DSA)
-    #     - Microsoft Knowledge Base (KB)
-    #     - Microsoft Security Bulletins (MS)
-    #     - Mozilla Foundation Security Advisories (MFSA)
-    #     - WPScan Wordpress Vulnerability Database (WPVDB)
-    #     - Rust Security Advisory Database (RUSTSEC)
-    #
-    #   * Exploit databases:
-    #     - Exploit DB
-    #     - 1337 Day DB
-    #
-    #   * Aggregator databases:
-    #     - Synk Vulnerability Database
-    #     - Vulners Security Database
-    #     - Open Bug Bounty Reports
-    #
-    #   * Misc:
-    #     - IETF Request For Comments (RFC)
-    #
-    @staticmethod
-    def url_from_tag(tag):
-        assert tag == tag.upper()
-
-        # Implementation note: one might be tempted to change this into anything
-        # that's more elegant than this spaghetti of "if" statements.
-        #
-        # HOWEVER.
-        #
-        # Upon reflection you'll realize that anything more "elegant" than this
-        # is also more complex and harder to maintain and debug. So this is the
-        # correct solution.
-        #
-        # You may not like it but his is what peak code looks like. #dealwithit
-
-        url = None
-        if tag.startswith("CVE-"):
-            url = "https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + tag
-        elif tag.startswith("UBUNTU-CVE-"):
-            url = "https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + tag[7:]
-        elif tag.startswith("DEBIAN-CVE-"):
-            url = "https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + tag[7:]
-        elif tag.startswith("CWE-"):
-            url = "https://cwe.mitre.org/data/definitions/" + tag[4:] + ".html"
-        elif tag.startswith("CAPEC-"):
-            url = "https://capec.mitre.org/data/definitions/" + tag[6:] + ".html"
-        elif tag.startswith("CNVD-"):
-            url = "https://www.cnvd.org.cn/flaw/show/" + tag
-        elif tag.startswith("JVNDB-"):
-            url = "https://jvndb.jvn.jp/ja/contents/" + tag[6:10] + "/" + tag + ".html"
-        elif tag.startswith("JVN"):
-            url = "https://jvn.jp/jp/" + tag + "/index.html"
-        elif tag.startswith("BDU:"):
-            url = "https://bdu.fstec.ru/vul/" + tag[4:]
-        elif tag.startswith("USN-"):
-            url = "https://ubuntu.com/security/notices/" + tag[4:]
-        elif tag.startswith("RHSA-"):
-            url = "https://access.redhat.com/errata/" + tag
-        elif tag.startswith("DSA-"):
-            url = "https://www.debian.org/security/" + tag.lower()
-        elif tag.startswith("KB"):
-            url = "https://support.microsoft.com/kb/" + tag[2:]
-        elif tag.startswith("MS"):
-            url = (
-                "https://docs.microsoft.com/en-us/security-updates/securitybulletins/20"
-                + tag[2:4]
-                + "/"
-                + tag.lower()
-            )
-        elif tag.startswith("MFSA"):
-            url = (
-                "https://www.mozilla.org/en-US/security/advisories/" + tag.lower() + "/"
-            )
-        elif tag.startswith("WPVDB-ID:"):
-            url = "https://wpscan.com/vulnerability/" + tag[9:].lower() + "/"
-        elif tag.startswith("RUSTSEC-"):
-            url = "https://rustsec.org/advisories/" + tag + ".html"
-        elif tag.startswith("PYSEC-"):
-            url = "https://osv.dev/vulnerability/" + tag
-        elif tag.startswith("EDB-ID:"):
-            url = "https://www.exploit-db.com/exploits/" + tag[7:]
-        elif tag.startswith("1337DAY-ID-"):
-            url = "https://0day.today/exploit/" + tag[11:]
-        elif tag.startswith("GITHUBEXPLOIT:"):
-            url = "https://vulners.com/githubexploit/" + tag[14:]
-        elif tag.startswith("OSV:"):
-            url = "https://vulners.com/osv/" + tag
-        elif tag.startswith("PACKETSTORM:"):
-            url = "https://vulners.com/packetstorm/" + tag
-        elif tag.startswith("PATCHSTACK:"):
-            url = "https://vulners.com/patchstack/" + tag
-        elif tag.startswith("SECURITYVULNS:DOC:"):
-            url = "https://vulners.com/securityvulns/" + tag
-        elif tag.startswith("WPEX-ID:"):
-            url = "https://vulners.com/wpexploit/" + tag
-        elif tag.startswith("SYNK-"):
-            url = "https://security.snyk.io/vuln/" + tag
-        elif tag.startswith("OBB-"):
-            url = "https://www.openbugbounty.org/reports/" + tag[4:] + "/"
-        elif tag.startswith("RFC "):
-            url = "https://datatracker.ietf.org/doc/html/" + tag[:3].lower() + tag[4:]
-        if url:
-            try:
-                urllib.parse.urlparse(url)
-            except Exception:
-                raise AssertionError("Malformed reference URL: '%s'" % url)
-        return url
 
     # Issues are reported using subsections. These are the supported sections:
     #
@@ -790,7 +682,7 @@ class MagentaReporter:
             taglist = []
             for tag in taxonomy:
                 tag = tag.strip()
-                url = self.url_from_tag(tag)
+                url = url_from_tag(tag)
                 if url:
                     taglist.append({"tag": tag, "url": url})
                 else:

@@ -536,9 +536,7 @@ class TestUrlTaxonomyCollapse(unittest.TestCase):
         self.assertEqual(out["references"], [])
 
     def test_nvd_cve_url_collapses_to_cve(self):
-        out = nikto.classify_references(
-            "https://nvd.nist.gov/vuln/detail/CVE-2021-1"
-        )
+        out = nikto.classify_references("https://nvd.nist.gov/vuln/detail/CVE-2021-1")
         self.assertEqual(out["cve"], ["CVE-2021-1"])
         self.assertEqual(out["references"], [])
 
