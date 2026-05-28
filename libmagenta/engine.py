@@ -642,6 +642,10 @@ class MagentaReporter:
         url = None
         if tag.startswith("CVE-"):
             url = "https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + tag
+        elif tag.startswith("UBUNTU-CVE-"):
+            url = "https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + tag[7:]
+        elif tag.startswith("DEBIAN-CVE-"):
+            url = "https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + tag[7:]
         elif tag.startswith("CWE-"):
             url = "https://cwe.mitre.org/data/definitions/" + tag[4:] + ".html"
         elif tag.startswith("CAPEC-"):
@@ -677,6 +681,8 @@ class MagentaReporter:
             url = "https://wpscan.com/vulnerability/" + tag[9:].lower() + "/"
         elif tag.startswith("RUSTSEC-"):
             url = "https://rustsec.org/advisories/" + tag + ".html"
+        elif tag.startswith("PYSEC-"):
+            url = "https://osv.dev/vulnerability/" + tag
         elif tag.startswith("EDB-ID:"):
             url = "https://www.exploit-db.com/exploits/" + tag[7:]
         elif tag.startswith("1337DAY-ID-"):
