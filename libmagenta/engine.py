@@ -3,6 +3,7 @@
 import base64
 import copy
 import fnmatch
+import hashlib
 import json
 import jsonschema  # tried using fastjsonschema but saw literally no change in speed :(
 import marshal
@@ -30,6 +31,32 @@ from .template import (
     CustomTemplateLoader,
 )
 from .taxonomy import normalize_tag, url_from_tag, tag_from_url
+
+######################################################################################################################
+
+
+# G3-aligned underscore vocabulary. The wrap step accepts these on parser output
+# and on round-trip ingestion; everything else starting with an underscore is
+# either silently stripped (KNOWN_IGNORED) or warned-and-stripped (the catch-all).
+# See docs/superpowers/specs/2026-06-03-g3-underscore-fields-design.md §2.2.
+RECOGNIZED_UNDERSCORE_FIELDS = frozenset(
+    {"_type", "_tool", "_fp", "_cmd", "_start", "_end"}
+)
+KNOWN_IGNORED_UNDERSCORE_FIELDS = frozenset({"_scanid", "_taskid", "_id"})
+
+
+def _sha1_file(filename):
+    """Compute the SHA-1 hex digest of a file by streaming it in 64 KiB chunks.
+
+    Streamed rather than read-then-hash so large inputs (multi-MB XML/JSON
+    scan outputs) don't get loaded into memory at once.
+    """
+    hasher = hashlib.sha1()
+    with open(filename, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
 
 ######################################################################################################################
 
@@ -995,6 +1022,62 @@ class MagentaReporter:
 
     # ----------------------------------------------------------------------------------------------------------------#
 
+    # Inject G3-aligned underscore fields onto a single parser-emitted issue.
+    #
+    # Performs, in order (per docs/superpowers/specs/2026-06-03-g3-underscore-fields-design.md §4):
+    #   1. Hard-validate _type if present (must equal "issue").
+    #   2. Hard-validate _tool if present (must equal "magenta").
+    #   3. Compute the input fingerprint as "magenta <sha1-of-file>".
+    #   4. Inject/set-union _fp with the engine fingerprint.
+    #   5. Silently strip KNOWN_IGNORED_UNDERSCORE_FIELDS.
+    #   6. Warn-and-strip any other underscore-prefixed field not in
+    #      RECOGNIZED_UNDERSCORE_FIELDS.
+    #   7. Inject the _type / _tool constants (idempotent after steps 1-2).
+    #
+    # Mutates `issue` in place. Raises ValueError on drift (mismatched constants).
+    def _g3_wrap_issue(self, issue, tool, filename):
+        # Steps 1-2: drift detector on the constants.
+        if "_type" in issue and issue["_type"] != "issue":
+            raise ValueError(
+                "Parser '%s' emitted issue with _type=%r; expected 'issue'"
+                % (tool, issue["_type"])
+            )
+        if "_tool" in issue and issue["_tool"] != "magenta":
+            raise ValueError(
+                "Parser '%s' emitted issue with _tool=%r; expected 'magenta'"
+                % (tool, issue["_tool"])
+            )
+
+        # Step 3: compute the engine-side fingerprint.
+        engine_fp = "magenta " + _sha1_file(filename)
+
+        # Step 4: inject/merge _fp as a set-union with the engine fingerprint.
+        existing_fp = issue.get("_fp", [])
+        issue["_fp"] = sorted(set(existing_fp) | {engine_fp})
+
+        # Steps 5-6: scrub underscore-prefixed fields not in the recognized set.
+        # Iterate over a snapshot of keys because we mutate the dict in the loop.
+        for key in list(issue.keys()):
+            if not key.startswith("_"):
+                continue
+            if key in RECOGNIZED_UNDERSCORE_FIELDS:
+                continue
+            if key in KNOWN_IGNORED_UNDERSCORE_FIELDS:
+                del issue[key]
+                continue
+            # Unknown underscore field: warn and strip.
+            sys.stderr.write(
+                "note: stripped unknown underscore field '%s' from %s/%s\n"
+                % (key, tool, filename)
+            )
+            del issue[key]
+
+        # Step 7: inject the constants (idempotent after steps 1-2).
+        issue["_type"] = "issue"
+        issue["_tool"] = "magenta"
+
+    # ----------------------------------------------------------------------------------------------------------------#
+
     # Run a tool parser against an input filename.
     def run_parser(self, tool, filename):
         parser = self.parsers[tool]["entrypoint"]
@@ -1015,6 +1098,7 @@ class MagentaReporter:
         validated = []
         for issue in issues:
             try:
+                self._g3_wrap_issue(issue, tool, filename)
                 self.validate_issue(issue)
             except Exception:
                 sys.stderr.write(
@@ -1072,12 +1156,18 @@ class MagentaReporter:
         templates = sorted(
             set(issue["template"] for issue in issues if issue["template"] != "manual")
         )
-        merged = [
-            self.run_merger(
-                template, [issue for issue in issues if issue["template"] == template]
-            )
-            for template in templates
-        ]
+        merged = []
+        for template in templates:
+            grouped = [issue for issue in issues if issue["template"] == template]
+            if len(grouped) == 1:
+                # Single-issue template: skip the merger so the original _cmd
+                # (and any other parser-supplied scalar) is preserved rather
+                # than being rewritten to "magenta merge". Matches g3's
+                # "received a single issue to merge" warning posture.
+                # See spec §5.5.
+                merged.append(grouped[0])
+            else:
+                merged.append(self.run_merger(template, grouped))
         merged.extend(issue for issue in issues if issue["template"] == "manual")
         return merged
 

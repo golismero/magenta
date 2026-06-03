@@ -7,10 +7,8 @@ import sys
 def main():
     results = json.load(sys.stdin)["issues"]
     for issue in results:
-        try:
-            del issue["vulnid"]
-        except KeyError:
-            pass
+        # vulnid is post-merge UI metadata; re-derived after the next merge pass.
+        issue.pop("vulnid", None)
     json.dump(results, sys.stdout)
 
 

@@ -54,6 +54,12 @@ class Merger:
 
         # We will collect all of the properties from the issues into this one.
         merged = {
+            "_type": "issue",
+            "_tool": "magenta",
+            "_fp": [],
+            "_cmd": None,
+            "_start": None,
+            "_end": None,
             "template": self.template_name,
             "tools": [],
             "severity": "none",
@@ -166,4 +172,46 @@ class Merger:
         return value
 
     def do_severity_cleanup(self, value):
+        return value
+
+    # G3-aligned underscore field callbacks.
+    # See docs/superpowers/specs/2026-06-03-g3-underscore-fields-design.md §5.
+
+    def do__type_collect(self, merged, issue):
+        return "issue"
+
+    def do__type_cleanup(self, value):
+        return "issue"
+
+    def do__tool_collect(self, merged, issue):
+        return "magenta"
+
+    def do__tool_cleanup(self, value):
+        return "magenta"
+
+    # _cmd: matches g3's per-plugin merger pattern (plugins/recon/nmap/g3m.py:79-82).
+    # Always synthesize "magenta merge" on merge; never attempt to preserve or
+    # reconcile input _cmd values. (Single-issue templates skip the merger
+    # entirely via MagentaReporter.merge_duplicated_issues, preserving their original _cmd.)
+    def do__cmd_collect(self, merged, issue):
+        return "magenta merge"
+
+    def do__cmd_cleanup(self, value):
+        return value
+
+    # _start: earliest seen. The `is None` check handles the case where the
+    # framework's default initialization gave us [] (an empty list) — min([], int)
+    # would raise TypeError. Initializing merged["_start"] to None in run() and
+    # checking `is None` here avoids that.
+    def do__start_collect(self, merged, issue):
+        return issue if merged is None else min(merged, issue)
+
+    def do__start_cleanup(self, value):
+        return value
+
+    # _end: latest seen.
+    def do__end_collect(self, merged, issue):
+        return issue if merged is None else max(merged, issue)
+
+    def do__end_cleanup(self, value):
         return value

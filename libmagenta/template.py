@@ -187,7 +187,8 @@ def http2md(v, hfind=[], find=[], full=False, headersonly=False):
     # If "headersonly" was used, skip the body entirely.
     if body and not headersonly:
         if full:
-            output.extend(body)
+            body = body.replace("\r\n", "\n")
+            output.extend(body.split("\n"))
         else:
             output.append("")
             body = body.replace("\r\n", "\n")
