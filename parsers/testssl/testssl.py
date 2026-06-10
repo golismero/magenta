@@ -2,6 +2,7 @@
 
 import csv
 import json
+import pickle
 import os.path
 import sys
 import traceback
@@ -108,15 +109,8 @@ else:
 # We will output a warning to the logs, however.
 try:
     client_simulation_names = {}
-    cs_txt = os.path.join(os.path.dirname(__file__), "client-simulation.txt")
-    with open(cs_txt, "r") as fd:
-        for line in fd:
-            line = line.strip()
-            if line.startswith("names+="):
-                value = line[9:-2]
-            elif line.startswith("short+="):
-                key = line[9:-2]
-                client_simulation_names[key] = value
+    with open(os.path.join(os.path.dirname(__file__), "clients.pickle"), "r") as fd:
+        client_simulation_names = pickle.load(fd)
 except Exception:
     client_simulation_names = None
     traceback.print_exc()
