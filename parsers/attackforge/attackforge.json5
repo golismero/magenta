@@ -6,5 +6,6 @@
         es: "AttackForge ayuda a gestionar sus programas de pentesting y a ofrecer servicios de pentesting a gran escala.",
     },
     status: "testing",
-    hidden: true
+    hidden: true,
+    formats: ["csv"]
 }

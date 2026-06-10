@@ -6,5 +6,6 @@
         es: "Esto permite importar vulnerabilidades de otros informes de Magenta.",
     },
     status: "production",
-    hidden: true
+    hidden: true,
+    formats: ["json"]
 }

@@ -5,5 +5,6 @@
         en: "WAFW00F allows one to identify and fingerprint Web Application Firewall (WAF) products protecting a website.",
         es: "WAFW00F permite identificar y tomar huellas dactilares de los productos de firewall de aplicaciones web (WAF) que protegen un sitio web.",
     },
-    status: "production"
+    status: "production",
+    formats: ["csv", "json"]
 }

@@ -4,5 +4,6 @@
         en: "Nessus is a proprietary vulnerability scanner developed by Tenable, Inc.",
         es: "Nessus es un escáner de vulnerabilidades propietario, desarrollado por Tenable, Inc.",
     },
-    status: "development"
+    status: "development",
+    formats: ["nessus", "xml"]
 }

@@ -224,6 +224,7 @@ class MagentaReporter:
         "properties": {
             "hidden": {"type": "boolean"},
             "status": {"enum": ["production", "testing", "development"]},
+            "formats": {"type": "array", "items": {"type": "string"}},
             "name": {"type": "string"},
             "url": {"type": "string", "pattern": "^https?://"},
             "description": {
@@ -1186,7 +1187,16 @@ class MagentaReporter:
         tasks = []
         for root, dirs, files in os.walk(pathname):
             for tool in self.parsers.keys():
+                extensions = self.parsers[tool].get("formats", [])
+                if extensions:
+                    extensions = ["." + x.lower() for x in extensions if x]
+                    extensions = sorted(set(extensions))
+                    if "*" in extensions:
+                        extensions = []
                 for filename in fnmatch.filter(files, tool + ".*"):
+                    ext = os.path.splitext(filename)[1].lower()
+                    if extensions and ext not in extensions:
+                        continue
                     filename = os.path.join(root, filename)
                     tasks.append((tool, filename))
 

@@ -5,5 +5,6 @@
         en: "This tool scans for IIS short name (8.3) disclosure vulnerabilities.",
         es: "Esta herramienta busca vulnerabilidades de divulgación de nombres cortos (8.3) en IIS.",
     },
-    status: "production"
+    status: "production",
+    formats: ["txt"]
 }

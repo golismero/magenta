@@ -19,5 +19,8 @@
 
     // Set to true to avoid listing this tool as one of the tools used in the pentest.
     // Useful for tools that are not pentesting tools per se, such as reporting or management tools.
-    hidden: false
+    hidden: false,
+
+    // Input file extensions filter. Defaults to "*" (no extension filtering).
+    formats: ["xml"],
 }
