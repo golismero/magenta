@@ -32,6 +32,12 @@ from .template import (
 )
 from .taxonomy import normalize_tag, url_from_tag, tag_from_url
 
+
+class ParseHaltError(Exception):
+    """Raised by MagentaReporter.process_files when on_error='halt' and a
+    file-level parser error occurs, to unwind without rendering a report."""
+
+
 ######################################################################################################################
 
 
@@ -1174,7 +1180,9 @@ class MagentaReporter:
 
     # Parse all files in a given directory and produce a report.
     # The files must be named after the tools (for example nmap.*).
-    def process_files(self, pathname, metadata=DEFAULT_METADATA):
+    def process_files(self, pathname, metadata=DEFAULT_METADATA, on_error="ignore"):
+        if on_error not in ("ignore", "skip", "halt"):
+            raise ValueError("invalid on_error mode: %r" % (on_error,))
         # Ensure the metadata is valid.
         metadata = self.parse_metadata(metadata)
 
@@ -1202,6 +1210,7 @@ class MagentaReporter:
 
         # Parse the input files.
         issues = []
+        skipped = 0
         for tool, filename in tasks:
             try:
                 results = self.run_parser(tool, filename)
@@ -1209,6 +1218,11 @@ class MagentaReporter:
                 sys.stderr.write("Error processing file '%s':\n" % filename)
                 traceback.print_exc()
                 sys.stderr.write("\n")
+                if on_error == "halt":
+                    raise ParseHaltError(filename) from None
+                # Count the skip in all non-halt modes; the CLI distinguishes
+                # "ignore" from "skip" by exit code, not by whether we count.
+                skipped += 1
                 continue
             issues.extend(results)
 
@@ -1224,6 +1238,7 @@ class MagentaReporter:
             "issues": issues,
             "sections": sections,
             "report": report,
+            "skipped": skipped,
         }
 
     # Export a generated report as an Obsidian vault.

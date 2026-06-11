@@ -33,13 +33,13 @@ os.environ["MAGENTA_HOME"] = MAGENTA_HOME
 
 try:
     from libmagenta import VERSION
-    from libmagenta.engine import MagentaReporter
+    from libmagenta.engine import MagentaReporter, ParseHaltError
 except ImportError:
     import sys
 
     sys.path.insert(1, os.environ["MAGENTA_HOME"])
     from libmagenta import VERSION
-    from libmagenta.engine import MagentaReporter
+    from libmagenta.engine import MagentaReporter, ParseHaltError
 
 
 # Helper function to format JSON with syntax highlighting.
@@ -108,8 +108,17 @@ def main(ctx, config):
     help="Directory containing the Dradis mapping.json5. "
     "Defaults to <MAGENTA_HOME>/formats/dradis. Only used with -f dradis.",
 )
+@click.option(
+    "--on-error",
+    type=click.Choice(("ignore", "skip", "halt"), case_sensitive=False),
+    default="ignore",
+    show_default=True,
+    help="How to react to a file-level parser error: 'ignore' logs and "
+    "continues (exit 0); 'skip' logs and continues but exits 2 if any file "
+    "failed; 'halt' logs and stops without writing a report (exit 3).",
+)
 @click.pass_context
-def report(ctx, pathname, output, format, language, metadata, dradis_templates):
+def report(ctx, pathname, output, format, language, metadata, dradis_templates, on_error):
     """Read all tool output files in the PATHNAME directory
     and generate a report from them.
 
@@ -178,13 +187,15 @@ def report(ctx, pathname, output, format, language, metadata, dradis_templates):
         if metadata is not None:
             metadata["language"] = language
         magenta.set_language(language)
-    result = magenta.process_files(pathname, metadata)
+    try:
+        result = magenta.process_files(pathname, metadata, on_error)
+    except ParseHaltError:
+        sys.exit(3)
     if format == "dradis":
         if dradis_templates is None:
             dradis_templates = os.path.join(MAGENTA_HOME, "formats", "dradis")
         magenta.export_as_dradis(result, output, dradis_templates)
-        return
-    if format == "obsidian":
+    elif format == "obsidian":
         magenta.export_as_obsidian(result, output)
     else:
         if output == "-":
@@ -202,6 +213,11 @@ def report(ctx, pathname, output, format, language, metadata, dradis_templates):
                 fd.write(convert_from_markdown(result["report"], "textile"))
             else:
                 assert False
+    if on_error == "skip" and result.get("skipped", 0):
+        sys.stderr.write(
+            "%d file(s) skipped due to parse errors.\n" % result["skipped"]
+        )
+        sys.exit(2)
 
 
 @main.command()
