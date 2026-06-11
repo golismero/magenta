@@ -6,5 +6,5 @@
         es: "Bandit es una herramienta diseñada para encontrar problemas de seguridad comunes en el código Python. Para hacer esto, Bandit procesa cada archivo, crea un AST a partir de él y ejecuta los complementos apropiados en los nodos AST. Una vez que Bandit ha terminado de escanear todos los archivos, genera un informe.",
     },
     status: "development",
-    formats: ["csv", "html", "json", "txt", "xml, "yaml]
+    formats: ["csv", "html", "json", "txt", "xml", "yaml"]
 }
