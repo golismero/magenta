@@ -1,4 +1,5 @@
 {
+    name: "Nessus",
     url: "https://www.tenable.com/products/nessus",
     description: {
         en: "Nessus is a proprietary vulnerability scanner developed by Tenable, Inc.",

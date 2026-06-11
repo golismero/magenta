@@ -1,4 +1,5 @@
 {
+    name: "THC Hydra",
     url: "https://github.com/vanhauser-thc/thc-hydra",
     description: {
         en: "Hydra is a parallelized login cracker which supports numerous protocols to attack. It is very fast and flexible, and new modules are easy to add.",
