@@ -22,4 +22,4 @@ with open("client-simulation.txt", "r") as fd:
                 print("Updated: %s: %r -> %r" % (key, clients[key], value))
 
 with open("clients.pickle", "wb") as fd:
-    pickle.dump(clients, fd)
+    pickle.dump(clients, fd, protocol=0)
