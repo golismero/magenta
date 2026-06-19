@@ -109,7 +109,7 @@ else:
 # We will output a warning to the logs, however.
 try:
     client_simulation_names = {}
-    with open(os.path.join(os.path.dirname(__file__), "clients.pickle"), "r") as fd:
+    with open(os.path.join(os.path.dirname(__file__), "clients.pickle"), "rb") as fd:
         client_simulation_names = pickle.load(fd)
 except Exception:
     client_simulation_names = None
