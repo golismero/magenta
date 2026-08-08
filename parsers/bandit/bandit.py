@@ -2,13 +2,12 @@
 
 import codecs
 import csv
-import json
 import io
+import json
 import re
 import sys
 
 import yaml
-
 from bs4 import BeautifulSoup
 from lxml import etree
 

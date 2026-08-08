@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-import json
 import io
+import json
 import sys
 
 from lxml import etree
@@ -117,11 +117,9 @@ def main():
                 elif sslversion == "TLSv1.1":
                     problems["TLS1_1"] = ""
                 elif sslversion == "TLSv1.2":
-                    if "TLS1_2" in problems:
-                        del problems["TLS1_2"]
+                    problems.pop("TLS1_2", None)
                 elif sslversion == "TLSv1.3":
-                    if "TLS1_3" in problems:
-                        del problems["TLS1_3"]
+                    problems.pop("TLS1_3", None)
 
             # Very very basic parsing of the certificate data to get the most obvious problems.
             # No idea how to deduce anything else without basically reimplementing half the tool.

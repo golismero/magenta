@@ -14,13 +14,13 @@ try:
 except Exception:
     PANDOC_AVAILABLE = False
 
-from libmagenta.dradis import markdown_to_dradis_textile
 from libmagenta.dradis import (
-    load_mapping,
-    render_section_body,
     InvalidMappingError,
+    build_repository_xml,
+    load_mapping,
+    markdown_to_dradis_textile,
+    render_section_body,
 )
-from libmagenta.dradis import build_repository_xml
 
 
 @unittest.skipUnless(PANDOC_AVAILABLE, "pandoc not installed")

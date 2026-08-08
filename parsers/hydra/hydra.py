@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
+import json
 import re
 import sys
-import json
 
 # This is the crude text output format that most people will probably use.
 # It's posible to trick the parser by having a password be "password:",

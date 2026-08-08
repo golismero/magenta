@@ -6,7 +6,6 @@ import sys
 sys.path.insert(1, os.environ["MAGENTA_HOME"])
 from libmagenta.merger import Merger
 
-
 # Known testssl tag renames (legacy name -> current name). Parsers should never
 # emit the legacy names -- the testssl parser already normalizes them at parse
 # time -- but if one does (a parser bug, or another tool reusing these tag

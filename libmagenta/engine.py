@@ -5,7 +5,6 @@ import copy
 import fnmatch
 import hashlib
 import json
-import jsonschema  # tried using fastjsonschema but saw literally no change in speed :(
 import marshal
 import os
 import os.path
@@ -15,22 +14,21 @@ import sys
 import traceback
 import urllib.parse
 import uuid
+from io import BytesIO
 
 import json5
-
+import jsonschema  # tried using fastjsonschema but saw literally no change in speed :(
 import matplotlib.pyplot as plt
 import numpy as np
 
-from io import BytesIO
-
+from .taxonomy import normalize_tag, tag_from_url, url_from_tag
 from .template import (
+    CustomTemplateLoader,
     DynAutoEscapeEnvironment,
     escapehtml,
     escapemd,
     http2md,
-    CustomTemplateLoader,
 )
-from .taxonomy import normalize_tag, url_from_tag, tag_from_url
 
 
 class ParseHaltError(Exception):
@@ -974,7 +972,7 @@ class MagentaReporter:
                 rendered_in_order = [
                     (name, rendered[name])
                     for name in issue_subsections_order
-                    if name in rendered and rendered[name]
+                    if rendered.get(name)
                 ]
                 text = (
                     self.env.get_template("main/issue_subsections")
@@ -1012,9 +1010,7 @@ class MagentaReporter:
         for name in report_sections_order:
             if name not in sections or not sections[name]:
                 continue
-            if name == "header":
-                text = sections[name] + "\n\n"
-            elif name not in ("issues", "notes"):
+            if name == "header" or name not in ("issues", "notes"):
                 text = sections[name] + "\n\n"
             else:
                 text = "\n\n".join(x[1] for x in sections["rendered_" + name]) + "\n\n"
@@ -1187,7 +1183,7 @@ class MagentaReporter:
         metadata = self.parse_metadata(metadata)
 
         # Switch to the requested language.
-        if "language" in metadata and metadata["language"]:
+        if metadata.get("language"):
             self.set_language(metadata["language"])
         assert self.language, "No language has been set, cannot render report"
 
@@ -1315,8 +1311,8 @@ class MagentaReporter:
         # Import lazily so callers using non-pandoc formats don't pay the
         # pypandoc import cost.
         from libmagenta.dradis import (
-            load_mapping,
             build_repository_xml_with_attachments,
+            load_mapping,
             package_zip,
         )
 

@@ -7,7 +7,6 @@ libmagenta/dradis.py for the Dradis-flavored cleanup).
 
 import pypandoc
 
-
 _INSTALL_HINT = (
     "pandoc is required for this output format but was not found on PATH.\n"
     "  macOS:  brew install pandoc\n"

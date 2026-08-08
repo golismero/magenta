@@ -4,8 +4,8 @@ import html
 import json
 import re
 import sys
-import urllib.parse
 import traceback
+import urllib.parse
 
 from lxml import etree
 
@@ -124,7 +124,7 @@ def do_generic_nessus_vulnerability(obj):
         "plugin_id": obj["plugin_id"],
         "plugin_name": obj["plugin_name"],
     }
-    if "port" in obj and obj["port"]:
+    if obj.get("port"):
         vuln["port"] = obj["port"]
     if "plugin_output" in obj:
         vuln["plugin_output"] = html.unescape(obj["plugin_output"].strip())
@@ -304,7 +304,7 @@ nessus2testssl = {
 
 def do_multiple_ssl_issues(obj):
     plugin_id = obj["plugin_id"]
-    if plugin_id in nessus2testssl and nessus2testssl[plugin_id]:
+    if nessus2testssl.get(plugin_id):
         host = obj["host"]
         port = obj["port"]
         if port:

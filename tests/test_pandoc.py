@@ -49,9 +49,8 @@ class TestConvertFromMarkdownWithoutPandoc(unittest.TestCase):
         with patch(
             "libmagenta.pandoc.pypandoc.get_pandoc_version",
             side_effect=OSError("pandoc not found"),
-        ):
-            with self.assertRaises(RuntimeError) as ctx:
-                convert_from_markdown("hello", "textile")
+        ), self.assertRaises(RuntimeError) as ctx:
+            convert_from_markdown("hello", "textile")
         msg = str(ctx.exception)
         self.assertIn("pandoc", msg.lower())
         self.assertIn("brew", msg)  # macOS install hint

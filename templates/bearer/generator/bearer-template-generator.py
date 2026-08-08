@@ -14,11 +14,12 @@
 
 import fnmatch
 import json
-import jsonschema
 import os
 import os.path
 import re
 import subprocess
+
+import jsonschema
 import yaml
 
 # JSON schema for templates.

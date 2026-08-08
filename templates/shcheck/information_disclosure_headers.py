@@ -4,7 +4,7 @@ import os
 import sys
 
 sys.path.insert(1, os.environ["MAGENTA_HOME"])
-from libmagenta.merger.burp import BurpMerger  # noqa: E402
+from libmagenta.merger.burp import BurpMerger
 
 
 class InfoDisclosureMerger(BurpMerger):

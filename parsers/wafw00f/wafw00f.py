@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-import sys
 import json
+import sys
 
 # We have two possible output formats, JSON or CSV.
 # The CSV format is actually broken (no double quotes) so we have to hand parse it.

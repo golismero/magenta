@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 
-import sys
 import json
-import socket
 import os.path
+import socket
+import sys
 import traceback
 
 from libnmap.parser import NmapParser

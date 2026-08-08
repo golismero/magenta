@@ -2,8 +2,8 @@
 
 import csv
 import json
-import pickle
 import os.path
+import pickle
 import sys
 import traceback
 
@@ -245,8 +245,7 @@ for key, results in items.items():
         # paragraph in the issue details later on.
         if item["severity"] in ratings:
             sev = ratings.index(item["severity"])
-            if sev > severity:
-                severity = sev
+            severity = max(severity, sev)
 
         # Collect the grade rating data always, regardless of the severity.
         if id == "overall_grade":
@@ -423,7 +422,7 @@ for key, results in items.items():
             tag = id
 
         # Add the findings as additional properties the paragraph template can access.
-        if "finding" in item and item["finding"]:
+        if item.get("finding"):
             if tag in problems:
                 problems[tag] += " " + item["finding"]
             else:

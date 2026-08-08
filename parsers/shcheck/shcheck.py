@@ -17,7 +17,7 @@ import urllib.parse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import headers as hdr  # noqa: E402  (requires the sys.path line above)
+import headers as hdr
 
 # Headers the original tool still lists in sec_headers, so it reports them as
 # *missing*. Browsers dropped all three years ago; a report must never advise

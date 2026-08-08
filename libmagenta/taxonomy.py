@@ -82,7 +82,7 @@ TAG_FROM_URL_PATTERNS = [
     (
         re.compile(
             r"^https?://(?:www\.)?cve\.org/CVERecord\?id=(CVE-\d{4}-\d{4,})(?:[&#].*)?$",
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1).upper(),
     ),
@@ -90,14 +90,14 @@ TAG_FROM_URL_PATTERNS = [
     (
         re.compile(
             r"^https?://cve\.mitre\.org/cgi-bin/cvename\.cgi\?name=(CVE-\d{4}-\d{4,})(?:[&#].*)?$",
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1).upper(),
     ),
     # NVD: enrichment layer (CVSS/CWE/CPE) over cve.org.
     (
         re.compile(
-            r"^https?://nvd\.nist\.gov/vuln/detail/(CVE-\d{4}-\d{4,})" + URL_TAIL, re.I
+            r"^https?://nvd\.nist\.gov/vuln/detail/(CVE-\d{4}-\d{4,})" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: m.group(1).upper(),
     ),
@@ -106,20 +106,20 @@ TAG_FROM_URL_PATTERNS = [
         re.compile(
             r"^https?://(?:www\.)?suse\.com/security/cve/(CVE-\d{4}-\d{4,})\.html"
             + URL_TAIL,
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1).upper(),
     ),
     (
         re.compile(
             r"^https?://access\.redhat\.com/security/cve/(cve-\d{4}-\d{4,})" + URL_TAIL,
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1).upper(),
     ),
     (
         re.compile(
-            r"^https?://ubuntu\.com/security/(CVE-\d{4}-\d{4,})" + URL_TAIL, re.I
+            r"^https?://ubuntu\.com/security/(CVE-\d{4}-\d{4,})" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: m.group(1).upper(),
     ),
@@ -127,7 +127,7 @@ TAG_FROM_URL_PATTERNS = [
         re.compile(
             r"^https?://security-tracker\.debian\.org/tracker/(CVE-\d{4}-\d{4,})"
             + URL_TAIL,
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1).upper(),
     ),
@@ -135,14 +135,14 @@ TAG_FROM_URL_PATTERNS = [
         re.compile(
             r"^https?://(?:www\.)?incibe\.es/index\.php/incibe-cert/alerta-temprana/vulnerabilidades/(cve-\d{4}-\d{4,})"
             + URL_TAIL,
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1).upper(),
     ),
     # Third-party CVE databases / SaaS.
     (
         re.compile(
-            r"^https?://app\.opencve\.io/cve/(CVE-\d{4}-\d{4,})" + URL_TAIL, re.I
+            r"^https?://app\.opencve\.io/cve/(CVE-\d{4}-\d{4,})" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: m.group(1).upper(),
     ),
@@ -150,38 +150,38 @@ TAG_FROM_URL_PATTERNS = [
         re.compile(
             r"^https?://(?:www\.)?sentinelone\.com/vulnerability-database/(cve-\d{4}-\d{4,})"
             + URL_TAIL,
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1).upper(),
     ),
     (
         re.compile(
-            r"^https?://(?:www\.)?tenable\.com/cve/(CVE-\d{4}-\d{4,})" + URL_TAIL, re.I
+            r"^https?://(?:www\.)?tenable\.com/cve/(CVE-\d{4}-\d{4,})" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: m.group(1).upper(),
     ),
     (
-        re.compile(r"^https?://db\.gcve\.eu/vuln/(cve-\d{4}-\d{4,})" + URL_TAIL, re.I),
+        re.compile(r"^https?://db\.gcve\.eu/vuln/(cve-\d{4}-\d{4,})" + URL_TAIL, re.IGNORECASE),
         lambda m: m.group(1).upper(),
     ),
     (
         re.compile(
-            r"^https?://avd\.aquasec\.com/nvd/\d{4}/(cve-\d{4}-\d{4,})" + URL_TAIL, re.I
+            r"^https?://avd\.aquasec\.com/nvd/\d{4}/(cve-\d{4}-\d{4,})" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: m.group(1).upper(),
     ),
     (
-        re.compile(r"^https?://vulners\.com/cve/(CVE-\d{4}-\d{4,})" + URL_TAIL, re.I),
+        re.compile(r"^https?://vulners\.com/cve/(CVE-\d{4}-\d{4,})" + URL_TAIL, re.IGNORECASE),
         lambda m: m.group(1).upper(),
     ),
     (
-        re.compile(r"^https?://feedly\.com/cve/(CVE-\d{4}-\d{4,})" + URL_TAIL, re.I),
+        re.compile(r"^https?://feedly\.com/cve/(CVE-\d{4}-\d{4,})" + URL_TAIL, re.IGNORECASE),
         lambda m: m.group(1).upper(),
     ),
     (
         re.compile(
             r"^https?://vulmon\.com/vulnerabilitydetails\?qid=(CVE-\d{4}-\d{4,})(?:[&#].*)?$",
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1).upper(),
     ),
@@ -189,26 +189,26 @@ TAG_FROM_URL_PATTERNS = [
         re.compile(
             r"^https?://(?:www\.)?redpacketsecurity\.com/cve_alert_(cve-\d{4}-\d{4,})"
             + URL_TAIL,
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1).upper(),
     ),
     (
         re.compile(
-            r"^https?://cwe\.mitre\.org/data/definitions/(\d+)\.html" + URL_TAIL, re.I
+            r"^https?://cwe\.mitre\.org/data/definitions/(\d+)\.html" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: "CWE-" + m.group(1),
     ),
     (
         re.compile(
-            r"^https?://capec\.mitre\.org/data/definitions/(\d+)\.html" + URL_TAIL, re.I
+            r"^https?://capec\.mitre\.org/data/definitions/(\d+)\.html" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: "CAPEC-" + m.group(1),
     ),
     (
         re.compile(
             r"^https?://(?:www\.)?cnvd\.org\.cn/flaw/show/(CNVD-[\w\-]+)" + URL_TAIL,
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1).upper(),
     ),
@@ -216,16 +216,16 @@ TAG_FROM_URL_PATTERNS = [
         re.compile(
             r"^https?://jvndb\.jvn\.jp/\w+/contents/\d{4}/(JVNDB-[\w\-]+)\.html"
             + URL_TAIL,
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1).upper(),
     ),
     (
-        re.compile(r"^https?://jvn\.jp/jp/(JVN[\w\-]+)/index\.html" + URL_TAIL, re.I),
+        re.compile(r"^https?://jvn\.jp/jp/(JVN[\w\-]+)/index\.html" + URL_TAIL, re.IGNORECASE),
         lambda m: m.group(1).upper(),
     ),
     (
-        re.compile(r"^https?://bdu\.fstec\.ru/vul/([\w\-]+?)" + URL_TAIL, re.I),
+        re.compile(r"^https?://bdu\.fstec\.ru/vul/([\w\-]+?)" + URL_TAIL, re.IGNORECASE),
         lambda m: "BDU:" + m.group(1),
     ),
     (
@@ -234,25 +234,25 @@ TAG_FROM_URL_PATTERNS = [
             + "|".join(CERTFR_PATHS.values())
             + r")/(CERTFR-[\w\-]+)"
             + URL_TAIL,
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1).upper(),
     ),
     (
         re.compile(
-            r"^https?://ubuntu\.com/security/notices/(\d[\w\-]*?)" + URL_TAIL, re.I
+            r"^https?://ubuntu\.com/security/notices/(\d[\w\-]*?)" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: "USN-" + m.group(1).upper(),
     ),
     (
         re.compile(
-            r"^https?://access\.redhat\.com/errata/(RHSA-[\w:\-]+?)" + URL_TAIL, re.I
+            r"^https?://access\.redhat\.com/errata/(RHSA-[\w:\-]+?)" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: m.group(1).upper(),
     ),
     (
         re.compile(
-            r"^https?://(?:www\.)?debian\.org/security/(dsa-[\w\-]+?)" + URL_TAIL, re.I
+            r"^https?://(?:www\.)?debian\.org/security/(dsa-[\w\-]+?)" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: m.group(1).upper(),
     ),
@@ -260,66 +260,66 @@ TAG_FROM_URL_PATTERNS = [
         re.compile(
             r"^https?://docs\.microsoft\.com/en-us/security-updates/securitybulletins/\d{4}/(ms\d{2}-\d+)"
             + URL_TAIL,
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1).upper(),
     ),
     (
-        re.compile(r"^https?://support\.microsoft\.com/kb/(\d+)" + URL_TAIL, re.I),
+        re.compile(r"^https?://support\.microsoft\.com/kb/(\d+)" + URL_TAIL, re.IGNORECASE),
         lambda m: "KB" + m.group(1),
     ),
     (
         re.compile(
             r"^https?://(?:www\.)?mozilla\.org/en-US/security/advisories/(mfsa[\w\-]+)"
             + URL_TAIL,
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1).upper(),
     ),
     (
-        re.compile(r"^https?://wpscan\.com/vulnerability/([\w\-]+)" + URL_TAIL, re.I),
+        re.compile(r"^https?://wpscan\.com/vulnerability/([\w\-]+)" + URL_TAIL, re.IGNORECASE),
         lambda m: "WPVDB-ID:" + m.group(1).upper(),
     ),
     (
         re.compile(
             r"^https?://rustsec\.org/advisories/(RUSTSEC-[\w\-]+)\.html" + URL_TAIL,
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1).upper(),
     ),
     (
         re.compile(
-            r"^https?://osv\.dev/vulnerability/(PYSEC-[\w\-]+?)" + URL_TAIL, re.I
+            r"^https?://osv\.dev/vulnerability/(PYSEC-[\w\-]+?)" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: m.group(1).upper(),
     ),
     (
         re.compile(
-            r"^https?://(?:www\.)?exploit-db\.com/exploits/(\d+)" + URL_TAIL, re.I
+            r"^https?://(?:www\.)?exploit-db\.com/exploits/(\d+)" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: "EDB-ID:" + m.group(1),
     ),
     (
-        re.compile(r"^https?://0day\.today/exploit/(\d+)" + URL_TAIL, re.I),
+        re.compile(r"^https?://0day\.today/exploit/(\d+)" + URL_TAIL, re.IGNORECASE),
         lambda m: "1337DAY-ID-" + m.group(1),
     ),
     (
-        re.compile(r"^https?://vulners\.com/githubexploit/([^/?#]+)" + URL_TAIL, re.I),
+        re.compile(r"^https?://vulners\.com/githubexploit/([^/?#]+)" + URL_TAIL, re.IGNORECASE),
         lambda m: "GITHUBEXPLOIT:" + m.group(1),
     ),
     (
-        re.compile(r"^https?://vulners\.com/osv/(OSV:[^/?#]+)" + URL_TAIL, re.I),
+        re.compile(r"^https?://vulners\.com/osv/(OSV:[^/?#]+)" + URL_TAIL, re.IGNORECASE),
         lambda m: m.group(1),
     ),
     (
         re.compile(
-            r"^https?://vulners\.com/packetstorm/(PACKETSTORM:[^/?#]+)" + URL_TAIL, re.I
+            r"^https?://vulners\.com/packetstorm/(PACKETSTORM:[^/?#]+)" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: m.group(1),
     ),
     (
         re.compile(
-            r"^https?://vulners\.com/patchstack/(PATCHSTACK:[^/?#]+)" + URL_TAIL, re.I
+            r"^https?://vulners\.com/patchstack/(PATCHSTACK:[^/?#]+)" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: m.group(1),
     ),
@@ -327,35 +327,35 @@ TAG_FROM_URL_PATTERNS = [
         re.compile(
             r"^https?://vulners\.com/securityvulns/(SECURITYVULNS:DOC:[^/?#]+)"
             + URL_TAIL,
-            re.I,
+            re.IGNORECASE,
         ),
         lambda m: m.group(1),
     ),
     (
         re.compile(
-            r"^https?://vulners\.com/wpexploit/(WPEX-ID:[^/?#]+)" + URL_TAIL, re.I
+            r"^https?://vulners\.com/wpexploit/(WPEX-ID:[^/?#]+)" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: m.group(1),
     ),
     (
         re.compile(
-            r"^https?://security\.snyk\.io/vuln/(SYNK-[\w\-]+?)" + URL_TAIL, re.I
+            r"^https?://security\.snyk\.io/vuln/(SYNK-[\w\-]+?)" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: m.group(1).upper(),
     ),
     (
-        re.compile(r"^https?://github\.com/advisories/(GHSA-[\w\-]+)" + URL_TAIL, re.I),
+        re.compile(r"^https?://github\.com/advisories/(GHSA-[\w\-]+)" + URL_TAIL, re.IGNORECASE),
         lambda m: m.group(1).upper(),
     ),
     (
         re.compile(
-            r"^https?://(?:www\.)?openbugbounty\.org/reports/(\d+)" + URL_TAIL, re.I
+            r"^https?://(?:www\.)?openbugbounty\.org/reports/(\d+)" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: "OBB-" + m.group(1),
     ),
     (
         re.compile(
-            r"^https?://datatracker\.ietf\.org/doc/html/rfc(\d+)" + URL_TAIL, re.I
+            r"^https?://datatracker\.ietf\.org/doc/html/rfc(\d+)" + URL_TAIL, re.IGNORECASE
         ),
         lambda m: "RFC " + m.group(1),
     ),

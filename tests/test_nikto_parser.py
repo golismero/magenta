@@ -77,8 +77,8 @@ class TestOsvdb(unittest.TestCase):
         self.assertEqual(out, {"cve": [], "taxonomy": [], "references": []})
 
     def test_osvdb_0_does_not_count_toward_hitrate_guard(self):
-        import io as _io
         import contextlib
+        import io as _io
 
         nikto.reset_osvdb_stats()
         for _ in range(12):
@@ -89,8 +89,8 @@ class TestOsvdb(unittest.TestCase):
         self.assertEqual(buf.getvalue(), "")
 
     def test_hitrate_guard_warns_when_none_map(self):
-        import io as _io
         import contextlib
+        import io as _io
 
         nikto.reset_osvdb_stats()
         for n in range(12):
@@ -102,8 +102,8 @@ class TestOsvdb(unittest.TestCase):
         self.assertIn("none", buf.getvalue().lower())
 
     def test_hitrate_guard_silent_when_some_map(self):
-        import io as _io
         import contextlib
+        import io as _io
 
         nikto.reset_osvdb_stats()
         nikto.classify_references("OSVDB-11144")  # maps
@@ -343,8 +343,8 @@ class TestReadJson(unittest.TestCase):
         self.assertEqual(sorted(x.path for x in f), ["/a", "/b"])
 
     def test_unrepairable_warns_and_returns_empty(self):
-        import io as _io2
         import contextlib as _cl2
+        import io as _io2
 
         buf = _io2.StringIO()
         with _cl2.redirect_stderr(buf):
@@ -461,8 +461,8 @@ class TestSchema(unittest.TestCase):
 
 class TestXmlHardening(unittest.TestCase):
     def test_truncated_xml_returns_empty_with_warning(self):
-        import io as _io3
         import contextlib as _cl3
+        import io as _io3
 
         bad = '<?xml version="1.0" ?><niktoscan><scandetails><item><uri>/x'
         buf = _io3.StringIO()

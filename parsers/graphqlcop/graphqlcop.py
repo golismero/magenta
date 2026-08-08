@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-import sys
 import json
+import sys
 import urllib.parse
 
 # TODO: the unhandled errors one may be best handled as a generic unhandled error vuln instead,
@@ -118,8 +118,7 @@ def main():
 
         # The severity is very straightforward to get.
         severity_num = THEIR_SEVERITIES.index(vuln["severity"].lower())
-        if severity_num > max_severity:
-            max_severity = severity_num
+        max_severity = max(max_severity, severity_num)
         severity = OUR_SEVERITIES[severity_num]
 
         # We can extract the vulnerable endpoint from the curl command.

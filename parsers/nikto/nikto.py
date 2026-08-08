@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
-import io
-import re
 import csv
-import sys
+import io
 import json
 import os.path
+import re
+import sys
 import traceback
 from collections import namedtuple
 
@@ -35,14 +35,14 @@ Finding = namedtuple(
 _CVE_RE = re.compile(r"^CVE-\d{4}-\d+$")
 _MS_RE = re.compile(r"^MS\d{2}-\d+$")  # Microsoft bulletins, e.g. MS00-078
 _CNVD_RE = re.compile(r"^CNVD(?:-C)?-\d{4}-\d+$")  # incl. the -C- sub-series
-_OSVDB_RE = re.compile(r"^OSVDB-(\d+)$", re.I)
+_OSVDB_RE = re.compile(r"^OSVDB-(\d+)$", re.IGNORECASE)
 # General-concept / other taxonomy (go in issue-level taxonomy only).
 _CWE_RE = re.compile(r"^CWE-\d+$")
 _CAPEC_RE = re.compile(r"^CAPEC-\d+$")
-_RFC_RE = re.compile(r"^RFC-(\d+)$", re.I)
-_MSKB_RE = re.compile(r"^MSKB:Q?(\d+)$", re.I)
-_BID_RE = re.compile(r"^BID-\d+$", re.I)
-_URL_RE = re.compile(r"^https?://", re.I)
+_RFC_RE = re.compile(r"^RFC-(\d+)$", re.IGNORECASE)
+_MSKB_RE = re.compile(r"^MSKB:Q?(\d+)$", re.IGNORECASE)
+_BID_RE = re.compile(r"^BID-\d+$", re.IGNORECASE)
+_URL_RE = re.compile(r"^https?://", re.IGNORECASE)
 
 # Unicode hyphens/dashes Nikto's DB occasionally uses inside ids (e.g.
 # "CVE‑2002‑1929" with U+2011). Normalized to ASCII "-" before matching so the
@@ -56,17 +56,17 @@ _UNICODE_HYPHENS = re.compile("[‐-―−]")
 # the captured group is the id payload.
 _URL_TAXONOMY_PATTERNS = [
     (
-        re.compile(r"^https?://cwe\.mitre\.org/data/definitions/(\d+)\.html", re.I),
+        re.compile(r"^https?://cwe\.mitre\.org/data/definitions/(\d+)\.html", re.IGNORECASE),
         "taxonomy",
         "CWE-",
     ),
     (
-        re.compile(r"^https?://capec\.mitre\.org/data/definitions/(\d+)\.html", re.I),
+        re.compile(r"^https?://capec\.mitre\.org/data/definitions/(\d+)\.html", re.IGNORECASE),
         "taxonomy",
         "CAPEC-",
     ),
     (
-        re.compile(r"^https?://(?:[\w.-]+\.)?vulners\.com/osvdb/OSVDB:(\d+)", re.I),
+        re.compile(r"^https?://(?:[\w.-]+\.)?vulners\.com/osvdb/OSVDB:(\d+)", re.IGNORECASE),
         "osvdb",
         "",
     ),
@@ -74,7 +74,7 @@ _URL_TAXONOMY_PATTERNS = [
         re.compile(
             r"^https?://(?:nvd\.nist\.gov|(?:www\.)?cve\.(?:mitre\.org|org))/\S*?"
             r"(CVE-\d{4}-\d+)",
-            re.I,
+            re.IGNORECASE,
         ),
         "cve",
         "",

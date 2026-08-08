@@ -21,7 +21,6 @@ import json5
 
 from libmagenta.pandoc import convert_from_markdown
 
-
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _LUA_FILTER = os.path.join(_HERE, "table_linebreak_fix_gfm.lua")
 

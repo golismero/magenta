@@ -7,16 +7,13 @@ import os.path
 import sys
 
 import babel
+import click
 import json5
 import jsonschema
-
-import click
 from click_default_group import DefaultGroup
-
 from pygments import highlight
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.lexers.web import JsonLexer
-
 from rich import box
 from rich.console import Console
 from rich.table import Table

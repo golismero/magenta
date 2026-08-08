@@ -6,28 +6,27 @@
 
 import html
 import html.entities
-import jinja2
 import posixpath
 import weakref
-
 from functools import wraps
 
-from markupsafe import Markup
-from jinja2.sandbox import ImmutableSandboxedEnvironment
+import jinja2
 from jinja2.compiler import CodeGenerator
+from jinja2.sandbox import ImmutableSandboxedEnvironment
 from jinja2.utils import pass_context  # jinja2 3.x
+from markupsafe import Markup
 
 
 class LocalOverridingCodeGenerator(CodeGenerator):
     def visit_Template(self, *args, **kwargs):
-        super(LocalOverridingCodeGenerator, self).visit_Template(*args, **kwargs)
+        super().visit_Template(*args, **kwargs)
         overrides = getattr(self.environment, "_codegen_overrides", {})
 
         if overrides:
             self.writeline("")
 
         for name, override in overrides.items():
-            self.writeline("{} = {}".format(name, override))
+            self.writeline(f"{name} = {override}")
 
 
 class DynAutoEscapeEnvironment(ImmutableSandboxedEnvironment):
@@ -37,7 +36,7 @@ class DynAutoEscapeEnvironment(ImmutableSandboxedEnvironment):
         escape_func = kwargs.pop("escape_func", None)
         markup_class = kwargs.pop("markup_class", None)
 
-        super(DynAutoEscapeEnvironment, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # we need to disable constant-evaluation at compile time, because it
         # calls jinja's own escape function.
@@ -51,7 +50,7 @@ class DynAutoEscapeEnvironment(ImmutableSandboxedEnvironment):
                 getattr(self.finalize, "contextfunction", False)  # jinja2 2.x
                 or getattr(self.finalize, "jinja_pass_arg", False)  # jinja2 3.x
             ):
-                _finalize = getattr(self, "finalize")
+                _finalize = self.finalize
                 self.finalize = lambda _, v: _finalize(v)
         else:
             self.finalize = lambda _, v: v
