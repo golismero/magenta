@@ -1,0 +1,10 @@
+{
+    name: "shcheck",
+    url: "https://github.com/santoru/shcheck",
+    description: {
+        en: "shcheck checks which security headers are enabled on a web server, and which are missing or misconfigured.",
+        es: "shcheck comprueba qué cabeceras de seguridad están habilitadas en un servidor web, y cuáles faltan o están mal configuradas.",
+    },
+    status: "development",
+    formats: ["json", "txt"]
+}

@@ -1,0 +1,40 @@
+
+======================================================
+ > shcheck.py - santoru ..............................
+------------------------------------------------------
+ Simple tool to check security headers on a webserver 
+======================================================
+
+[*] Analyzing headers of https://example.com/app
+---
+HTTP Request:
+	HEAD /app HTTP/1.1
+	Host: example.com
+	Connection: close
+	
+---
+HTTP Response:
+	HTTP/1.1 200 OK
+	Server: nginx/1.10.3
+	X-Frame-Options: DENY
+	Strict-Transport-Security: max-age=0
+	Connection: close
+	
+---
+[*] Header X-Frame-Options is present! (Value: DENY)
+[!] Insecure header Strict-Transport-Security is set! (Value: max-age=0)
+[!] Header Content-Security-Policy is present but potentially unsafe!
+Value:
+	default-src 'self' 'unsafe-inline';
+[!] Security header missing: Referrer-Policy
+[!] Deprecated security header X-XSS-Protection is present! (Value: 1; mode=block)
+[!] Possible information disclosure: header Server is present! (Value: nginx/1.10.3)
+[!] Cache control header ETag is present! (Value: "abc")
+-------------------------------------------------------
+[!] Headers analysis results for https://example.com/app
+[+] 1 security header(s) present and safe
+[-] 2 security header(s) present but unsafe
+[-] 1 security header(s) missing
+[-] 1 deprecated security header(s) found
+[-] 1 potential information disclosure header(s) found
+

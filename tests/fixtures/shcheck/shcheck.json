@@ -1,0 +1,16 @@
+{
+  "https://example.com/app": {
+    "present": {
+      "X-Frame-Options": "DENY",
+      "Strict-Transport-Security": "max-age=0; includeSubDomains",
+      "Content-Security-Policy": "default-src 'self'; script-src 'unsafe-inline'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+    },
+    "missing": ["Referrer-Policy", "Permissions-Policy"],
+    "unsafe": {"Strict-Transport-Security": "max-age=0; includeSubDomains"},
+    "deprecated": {"X-XSS-Protection": "1; mode=block"},
+    "information_disclosure": {"Server": "nginx/1.10.3"},
+    "caching": {"ETag": "\"abc\""},
+    "request": "SEVBRCAvYXBwIEhUVFAvMS4xDQpIb3N0OiBleGFtcGxlLmNvbQ0KDQo=",
+    "response": "SFRUUC8xLjEgMjAwIE9LDQpTZXJ2ZXI6IG5naW54LzEuMTAuMw0KDQo="
+  }
+}

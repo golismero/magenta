@@ -1,0 +1,18 @@
+{
+    title: "Divulgación de Información en Cabeceras HTTP",
+
+    summary: "{% if affects|length > 1 %}Se encontró que algunos servidores web devolvían{% else %}Se encontró que un servidor web devolvía{% endif %} cabeceras HTTP que revelan información sobre el software subyacente y su versión.",
+
+    description: "{% include 'summary' %}",
+
+    recommendations: "Configure el servidor web y el framework de la aplicación para suprimir o generalizar estas cabeceras. La mayoría de los servidores ofrecen una directiva para ello — por ejemplo `server_tokens off` en nginx, `ServerTokens Prod` junto con `ServerSignature Off` en Apache, o eliminar la cabecera `X-Powered-By` en la configuración del framework. Tenga en cuenta que se trata de una medida de fortalecimiento y no de la corrección de una vulnerabilidad concreta: aumenta el esfuerzo necesario para identificar la tecnología utilizada y buscar exploits conocidos, pero por sí sola no impide ningún ataque.",
+
+    details: "{% for x in issues %}***{{ x.host + x.path }}***\n\nLas siguientes cabeceras de respuesta HTTP revelaron información sobre el software:\n\n{% for k, v in x.headers.items() %}* **{{ k }}**: {{ v }}\n{% endfor %}\n{% if x.response is defined %}{% if x.request is defined %}El siguiente diálogo HTTP ilustra{% else %}La siguiente respuesta HTTP ilustra{% endif %} el problema:\n\n{% if x.request is defined %}**Petición HTTP:**\n\n{{ x.request|b64decode|http2md }}\n{% endif %}**Respuesta HTTP (sólo cabeceras):**\n\n{{ x.response|b64decode|http2md(headersonly=True) }}\n{% endif %}{% endfor %}",
+
+    taxonomy: ["CWE-200"],
+
+    references: [
+        "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html",
+        "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server",
+    ],
+}
