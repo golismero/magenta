@@ -23,27 +23,47 @@
 {
   // true  → emit <evidence> elements under host nodes (one per [issue, host]
   //         pair). Standard Dradis CE workflow.
-  // false → no Nodes/Evidences/ created. Use this if your issue.textile
-  //         template carries Affects/Details fields inline.
-  evidence_nodes: true,
+  // false → no evidence is emitted. The issue text has to carry everything
+  //         instead, which is what the default below does via {{ body }}.
+  //         Target nodes are still created either way.
+  evidence_nodes: false,
 
   // Ordered list. Position controls #[Section]# order in the issue body.
-  // Default fields target the Dradis CE welcome kit:
-  //   Title, CVSSv4.BaseScore, CVSSv4.BaseVector, Type, Description,
-  //   Solution, References
+  // `name` is written out verbatim as the #[Name]# marker, so these are
+  // whatever fields YOUR Dradis issue template defines — rename, reorder,
+  // add and drop them freely (a kit using "Remediation" instead of
+  // "Solution", or real "Affects" and "Details" fields, just says so here).
+  //
+  // The default keeps the whole issue in one field, rendered exactly as the
+  // Markdown report renders it, headings and all. That is the least
+  // surprising thing to do under the stock Dradis CE welcome kit, whose
+  // issue template has no Affects or Details field to put them in.
   issue_sections: [
     { name: "Title",             value: "{{ title }}" },
     { name: "CVSSv4.BaseScore",  value: "" },             // Magenta has no CVSS — fill in via Dradis
     { name: "CVSSv4.BaseVector", value: "" },             // ditto
     { name: "Type",              value: "" },             // Internal | External
-    { name: "Description",       value: "{{ description }}" },
-    { name: "Solution",          value: "{{ recommendations }}" },
-    { name: "References",        value: "{% for url in references %}* {{ url }}\n{% endfor %}" },
+    { name: "Description",       value: "{{ body }}" },
   ],
 
-  // Used only when evidence_nodes: true. One render per entry in
-  // issue.affects (where `affected` = the host string for that evidence).
-  // Default targets the welcome kit's Location+Output evidence template.
+  // Available to every expression above:
+  //   body            whole issue as Markdown, assembled like the report
+  //   title           rendered issue title
+  //   description     rendered prose
+  //   recommendations rendered remediation prose
+  //   details         rendered technical detail (tables, output, requests)
+  //   affects         list of affected targets — iterate it
+  //   references      list of URLs, template defaults merged in — iterate it
+  //   severity        raw key: none | low | medium | high | critical
+  //   severity_label  localized label: "High", "Alta", ...
+  //
+  // A kit with its own fields would use them individually instead of {{ body }}:
+  //   { name: "Affects",     value: "{% for target in affects %}* {{ target }}\n{% endfor %}" },
+  //   { name: "Details",     value: "{{ details }}" },
+  //   { name: "Remediation", value: "{{ recommendations }}" },
+
+  // Used only when evidence_nodes: true, but the key is required either way.
+  // One render per entry in issue.affects, where `affected` is that target.
   evidence_sections: [
     { name: "Location", value: "{{ affected }}" },
     { name: "Output",   value: "{{ details }}" },

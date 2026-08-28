@@ -62,6 +62,46 @@ class TestMarkdownToDradisTextile(unittest.TestCase):
         self.assertIn("foo bar", result)
         self.assertIn("baz", result)
 
+    def test_heading_anchor_is_stripped(self):
+        # pandoc writes "h4(#details). Details"; Dradis has no use for the
+        # anchor, and every issue repeats the same subsection headings, so
+        # the ids collide once more than one issue is imported.
+        result = markdown_to_dradis_textile("#### Details\n\ntext\n")
+        self.assertIn("h4. Details", result)
+        self.assertNotIn("(#details)", result)
+
+    def test_heading_anchor_stripped_for_every_level(self):
+        for level in range(1, 7):
+            md = "#" * level + " Heading\n\ntext\n"
+            result = markdown_to_dradis_textile(md)
+            self.assertIn("h" + str(level) + ". Heading", result)
+            self.assertNotIn("(#heading)", result)
+
+    def test_accented_heading_anchor_is_stripped(self):
+        # Spanish reports produce non-ASCII anchors: h4(#detalles-técnicos).
+        result = markdown_to_dradis_textile("#### Detalles Técnicos\n\ntext\n")
+        self.assertIn("h4. Detalles Técnicos", result)
+        self.assertNotIn("(#detalles", result)
+
+    def test_deduplicated_heading_anchor_is_stripped(self):
+        # Repeated headings get a numeric suffix: h4(#details-1).
+        md = "#### Details\n\na\n\n#### Details\n\nb\n"
+        result = markdown_to_dradis_textile(md)
+        self.assertNotIn("(#details-1)", result)
+        self.assertEqual(result.count("h4. Details"), 2)
+
+    def test_heading_with_inline_code_keeps_its_text(self):
+        result = markdown_to_dradis_textile("#### The `foo` bit\n\ntext\n")
+        self.assertIn("h4. The @foo@ bit", result)
+        self.assertNotIn("(#the-foo-bit)", result)
+
+    def test_code_block_content_is_not_mistaken_for_a_heading(self):
+        # A bc. block's continuation lines are emitted raw, so the strip is
+        # deliberately anchored to h1-h6 with an id-only attribute block.
+        md = "```\nhello(#world). not a heading\n```\n"
+        result = markdown_to_dradis_textile(md)
+        self.assertIn("hello(#world). not a heading", result)
+
     def test_simple_gfm_table_becomes_textile_table(self):
         md = "| Col A | Col B |\n|-------|-------|\n| a1    | b1    |\n| a2    | b2    |\n"
         result = markdown_to_dradis_textile(md)
@@ -641,12 +681,12 @@ class TestExportAsDradisEngineMethod(unittest.TestCase):
                 "report_sections_order": [],
                 "issue_subsections_order": [],
             },
+            # Shaped the way process_files() emits it: the raw issue carries
+            # the list-valued fields, the rendered prose lives in sections.
             "issues": [
                 {
+                    "template": "default_credentials_found",
                     "title": "Test Issue",
-                    "description": "A description.",
-                    "recommendations": "A fix.",
-                    "details": "Detected on host.",
                     "severity": "medium",
                     "affects": ["host-1"],
                     "taxonomy": [],
@@ -655,7 +695,16 @@ class TestExportAsDradisEngineMethod(unittest.TestCase):
                     "vulnid": "1.1",
                 }
             ],
-            "sections": {"issues": {}},
+            "sections": {
+                "issues": {
+                    "1.1": {
+                        "title": "Test Issue",
+                        "description": "A description.",
+                        "recommendations": "A fix.",
+                        "details": "Detected on host.",
+                    }
+                }
+            },
         }
 
         magenta_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -682,3 +731,198 @@ class TestExportAsDradisEngineMethod(unittest.TestCase):
                 # Has our issue
                 issues = root.findall("issues/issue")
                 self.assertEqual(len(issues), 1)
+
+
+@unittest.skipUnless(PANDOC_AVAILABLE, "pandoc not installed")
+@unittest.skipUnless(PANDOC_AVAILABLE, "pandoc not installed")
+class TestDradisIssueContexts(unittest.TestCase):
+    """The Dradis mapping is evaluated against a per-issue context that has to
+    combine two different representations of the same issue: the RENDERED
+    Markdown subsections (which only exist in report["sections"]) and the RAW
+    list-valued fields (which only exist in report["issues"]).
+
+    These tests drive the shape process_files() actually produces, unlike the
+    hand-built fixtures above, which use the rendered shape throughout."""
+
+    TEMPLATE = "multiple_graphql_vulnerabilities"
+    SUBSECTIONS = (
+        "severity",
+        "affects",
+        "description",
+        "recommendations",
+        "details",
+        "references",
+    )
+
+    def _engine(self):
+        from libmagenta.engine import MagentaReporter
+
+        magenta_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        os.environ.setdefault("MAGENTA_HOME", magenta_root)
+        magenta = MagentaReporter()
+        magenta.set_language("en")
+        return magenta, magenta_root
+
+    def _report(self, issues, sections):
+        return {
+            "metadata": {
+                "project_info": {"product_name": "X", "report_author": "tester"},
+                "report_sections_order": [],
+                "issue_subsections_order": self.SUBSECTIONS,
+            },
+            "issues": issues,
+            "sections": sections,
+        }
+
+    def _raw_issue(self, **kw):
+        """An issue shaped the way a parser + merger emits it: no rendered
+        prose, list-valued affects/references."""
+        issue = {
+            "template": self.TEMPLATE,
+            "severity": "high",
+            "affects": ["host-1"],
+            "references": [],
+            "tools": [],
+            "vulnid": "VULN-1",
+            "title": "Multiple GraphQL Vulnerabilities Found",
+        }
+        issue.update(kw)
+        return issue
+
+    def _rendered(self, **kw):
+        rendered = {
+            "title": "Multiple GraphQL Vulnerabilities Found",
+            "severity": "High",
+            "affects": "* host-1\n",
+            "description": "The endpoint leaks its schema.",
+            "recommendations": "Disable introspection in production.",
+            "details": "Confirmed by replaying the introspection query.",
+            "references": "* https://example.org/ref\n",
+        }
+        rendered.update(kw)
+        return rendered
+
+    def _export_xml(self, report, templates_dir=None):
+        magenta, magenta_root = self._engine()
+        with tempfile.TemporaryDirectory() as tmp:
+            out_zip = os.path.join(tmp, "out.zip")
+            magenta.export_as_dradis(
+                report,
+                out_zip,
+                templates_dir or os.path.join(magenta_root, "formats", "dradis"),
+            )
+            with (
+                zipfile.ZipFile(out_zip) as zf,
+                zf.open("dradis-repository.xml") as fd,
+            ):
+                return ET.fromstring(fd.read().decode("utf-8"))
+
+    def _one_issue(self, **kw):
+        return self._report(
+            [self._raw_issue(**kw)],
+            {"issues": {"VULN-1": self._rendered()}},
+        )
+
+    # -- default mapping: everything in one field ------------------------
+
+    def test_whole_issue_reaches_the_description_field(self):
+        # The bug this class exists for: these came out as empty #[Section]#
+        # markers because the raw issue has no rendered prose at all.
+        text = self._export_xml(self._one_issue()).findtext("issues/issue/text")
+        self.assertIn("leaks its schema", text)
+        self.assertIn("Disable introspection", text)
+        self.assertIn("replaying the introspection query", text)
+
+    def test_description_field_carries_subsection_headings(self):
+        # `body` is assembled by main/issue_body, so the localized subsection
+        # headings come along -- that is what makes one field readable.
+        text = self._export_xml(self._one_issue()).findtext("issues/issue/text")
+        self.assertIn("Description", text)
+        self.assertIn("Details", text)
+        self.assertIn("Recommendations", text)
+
+    def test_no_evidence_is_emitted_by_default(self):
+        root = self._export_xml(self._one_issue())
+        self.assertEqual(root.findall("nodes/node/evidence/evidence"), [])
+
+    def test_issue_filtered_out_of_the_report_is_not_exported(self):
+        # min_severity dropped it from the Markdown report, so it has no
+        # rendered counterpart; Dradis must agree and omit it too.
+        report = self._report([self._raw_issue()], {"issues": {}})
+        self.assertEqual(self._export_xml(report).findall("issues/issue"), [])
+
+    def test_note_without_vulnid_is_exported_with_its_body(self):
+        # Informational notes (severity "none", e.g. every wafw00f result)
+        # never get a vulnid, so they join by their index in report["issues"].
+        note = self._raw_issue(severity="none")
+        del note["vulnid"]
+        rendered = self._rendered(description="Just so you know.")
+        report = self._report([note], {"issues": {}, "notes": {0: rendered}})
+        text = self._export_xml(report).findtext("issues/issue/text")
+        self.assertIsNotNone(text)
+        self.assertIn("Just so you know", text)
+
+    def test_target_nodes_are_still_created_without_evidence(self):
+        # The rendered form of `affects` is a Markdown bullet list; overlaying
+        # it would make the exporter iterate a string character by character.
+        report = self._report(
+            [self._raw_issue(affects=["host-1", "host-2"])],
+            {"issues": {"VULN-1": self._rendered()}},
+        )
+        labels = [
+            n.findtext("label") for n in self._export_xml(report).findall("nodes/node")
+        ]
+        self.assertIn("host-1", labels)
+        self.assertIn("host-2", labels)
+        self.assertEqual(len(labels), 4)  # Report content, Targets, host-1, host-2
+
+    # -- custom kits: any field names the user wants ---------------------
+
+    def _company_kit(self, tmpdir):
+        """A kit like a real one: Affects and Details as fields of their own,
+        no evidence, Solution renamed to Remediation."""
+        mapping = r"""{
+          evidence_nodes: false,
+          issue_sections: [
+            { name: "Title",       value: "{{ title }}" },
+            { name: "Severity",    value: "{{ severity_label }}" },
+            { name: "Affects",     value: "{% for t in affects %}* {{ t }}\n{% endfor %}" },
+            { name: "Details",     value: "{{ details }}" },
+            { name: "Remediation", value: "{{ recommendations }}" },
+            { name: "References",  value: "{% for url in references %}* {{ url }}\n{% endfor %}" },
+          ],
+          evidence_sections: [],
+          project_properties: {},
+        }"""
+        path = os.path.join(tmpdir, "mapping.json5")
+        with open(path, "w", encoding="utf-8") as fd:
+            fd.write(mapping)
+        return tmpdir
+
+    def test_custom_mapping_names_its_own_fields(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._export_xml(self._one_issue(), self._company_kit(tmp))
+        text = root.findtext("issues/issue/text")
+        self.assertIn("#[Remediation]#", text)
+        self.assertIn("#[Affects]#", text)
+        self.assertIn("#[Details]#", text)
+        self.assertNotIn("#[Solution]#", text)
+
+    def test_custom_mapping_gets_the_localized_severity_label(self):
+        # `severity` is the raw key ("high"); severity_label is what the
+        # report shows the reader ("High", "Alta").
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._export_xml(self._one_issue(), self._company_kit(tmp))
+        text = root.findtext("issues/issue/text")
+        self.assertIn("High", text.split("#[Affects]#")[0])
+
+    def test_custom_mapping_gets_template_default_references_merged_in(self):
+        # render_issue() merges the template's own references onto a deepcopy,
+        # so the raw issue never sees them. The Dradis context has to redo that
+        # merge or it emits a shorter list than the Markdown report.
+        report = self._one_issue(references=["https://example.com/advisory"])
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._export_xml(report, self._company_kit(tmp))
+        text = root.findtext("issues/issue/text")
+        self.assertIn("example.com/advisory", text)
+        self.assertIn("portswigger.net/web-security/graphql", text)

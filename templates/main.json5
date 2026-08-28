@@ -68,6 +68,11 @@
     // These can be overridden by vulnerability templates.
 
     issue_subsections: "### {% if vulnid %}{{ vulnid }}: {% endif %}{{ title }}\n\n{% for name, text in rendered %}#### {% include name %}\n\n{{ text|safe }}\n\n{% endfor %}",
+
+    // Same as issue_subsections, minus the issue heading. Used by exporters
+    // that carry the title in a field of their own (the Dradis #[Title]#
+    // section), where repeating it as a heading would be redundant.
+    issue_body: "{% for name, text in rendered %}#### {% include name %}\n\n{{ text|safe }}\n\n{% endfor %}",
     issue_affects: "{% for target in affects %}* {{ target }}\n{% endfor %}",
     issue_taxonomy: "{% for t in taxonomy %}* **{{ t.tag }}**{% if t.url is defined %}: [{{ t.url }}]({{ t.url }}){% endif %}\n{% endfor %}",
     issue_tools: "{% for t in tools %}{% if not t.hidden %}* **{{ t.name }}**{% if t.url is defined %}: [{{ t.url }}]({{ t.url }}){% endif %}\n{% endif %}{% endfor %}",

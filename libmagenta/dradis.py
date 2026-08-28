@@ -46,6 +46,19 @@ _BACKSLASH_ESCAPES_TO_STRIP = (
 _HTML_TABLE_PATTERN = re.compile(r"<table[\s\S]*?</table>", re.IGNORECASE)
 _BR_PATTERN = re.compile(r"<br\s*/?>", re.IGNORECASE)
 
+# Pandoc's textile writer hangs an auto-generated anchor off every heading
+# ("h4(#details). Details"). Dradis has no use for them, and because every
+# issue repeats the same subsection headings, the ids collide as soon as more
+# than one issue is imported into a project.
+#
+# Deliberately narrow: h1-h6 with an id-only attribute block. GFM has no
+# attribute syntax, so that is the only shape pandoc can produce here — a
+# heading written as "## Foo {.warn}" folds the braces into the id rather than
+# emitting a Textile class. The narrowness matters because a "bc." block's
+# continuation lines are written out raw, so code content that merely looks
+# like a heading has to survive.
+_HEADING_ANCHOR_PATTERN = re.compile(r"^(h[1-6])\(#[^)\s]*\)\.", re.MULTILINE)
+
 
 def _re_convert_html_table(html_table):
     """Convert a raw HTML <table>...</table> block back into Textile.
@@ -70,10 +83,11 @@ def _re_convert_html_table(html_table):
 def markdown_to_dradis_textile(md_text):
     """Convert GFM Markdown to Dradis-flavored Textile.
 
-    Calls pandoc once, then applies three cleanup passes:
+    Calls pandoc once, then applies four cleanup passes:
       1. Re-convert any raw <table>...</table> HTML blocks back to Textile.
       2. html.unescape() to undo entity encoding (&amp; -> &, etc.).
       3. Strip backslash-escapes that Dradis renders better without.
+      4. Strip pandoc's auto-generated heading anchors.
     """
     text = convert_from_markdown(md_text, "textile")
 
@@ -96,6 +110,9 @@ def markdown_to_dradis_textile(md_text):
     # Pass 3: backslash escapes
     for old, new in _BACKSLASH_ESCAPES_TO_STRIP:
         text = text.replace(old, new)
+
+    # Pass 4: heading anchors
+    text = _HEADING_ANCHOR_PATTERN.sub(r"\1.", text)
 
     return text
 

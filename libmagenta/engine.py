@@ -694,13 +694,7 @@ class MagentaReporter:
 
         # For the references, we need to merge the issue and template default links.
         if "references" in issue_subsections:
-            if "references" in src:
-                refs = list(src["references"])
-            else:
-                refs = []
-            if "references" in issue:
-                refs.extend(issue["references"])
-            issue["references"] = sorted(set(refs))
+            issue["references"] = self._merged_references(issue)
 
         # For the taxonomy, we try to get the link for every vulnerability tag.
         if "taxonomy" in issue_subsections:
@@ -739,6 +733,20 @@ class MagentaReporter:
         # Note that we don't use the subsection headers here, that's the task of the caller.
         # We need this because we don't necessarily know the headers depth level here.
         return sections
+
+    # Merge a template's default reference links with the ones the issue itself
+    # carries. Note that render_issue() applies this to a deepcopy, so the merged
+    # list never reaches the caller's issue object -- export_as_dradis() has to
+    # call this itself rather than read issue["references"].
+    def _merged_references(self, issue):
+        src = self.templates[issue["template"]]
+        if "references" in src:
+            refs = list(src["references"])
+        else:
+            refs = []
+        if "references" in issue:
+            refs.extend(issue["references"])
+        return sorted(set(refs))
 
     # Reports are rendered using sections. One of those sections contains the issues.
     #
@@ -818,7 +826,7 @@ class MagentaReporter:
         # Now, we do the same for informational issues.
         if min_severity == "none":
             sorted_notes = []
-            for issue in issuelist:
+            for index, issue in enumerate(issuelist):
                 if issue["severity"] == "none":
                     title = (
                         self.env.get_template(issue["template"] + "/" + "title")
@@ -826,7 +834,10 @@ class MagentaReporter:
                         .strip()
                     )
                     issue["title"] = title
-                    sorted_notes.append((title, issue["template"], issue))
+                    # Notes never get a vulnid (main/issue_subsections omits the
+                    # prefix for them), so we keep their position in issuelist as
+                    # a join key for exporters that need the rendered text back.
+                    sorted_notes.append((title, issue["template"], issue, index))
         else:
             sorted_notes = []
 
@@ -985,10 +996,10 @@ class MagentaReporter:
 
         # Finally, we do the same for the notes section.
         if sorted_notes and "notes" in report_sections_order:
-            notes = []
+            notes = {}
             text = self.env.get_template("main/notes_prologue").render(metadata).strip()
             rendered_notes = [("header", text)]
-            for _, _, issue in sorted_notes:
+            for _, _, issue, index in sorted_notes:
                 rendered = self.render_issue(metadata, issue)
                 rendered_in_order = [
                     (name, rendered[name])
@@ -1000,7 +1011,7 @@ class MagentaReporter:
                     .render(issue, rendered=rendered_in_order)
                     .strip()
                 )
-                notes.append(rendered)
+                notes[index] = rendered
                 rendered_notes.append((issue["template"], text))
             sections["notes"] = notes
             sections["rendered_notes"] = rendered_notes
@@ -1318,5 +1329,57 @@ class MagentaReporter:
 
         mapping_path = os.path.join(dradis_templates_dir, "mapping.json5")
         mapping = load_mapping(mapping_path)
+        report = dict(report)
+        report["issues"] = self._dradis_issue_contexts(report)
         xml_str, attachments = build_repository_xml_with_attachments(report, mapping)
         package_zip(xml_str, attachments, output_path)
+
+    # Subsections whose rendered Markdown replaces the raw value. Everything
+    # else is left alone on purpose: `affects` and `references` also have
+    # rendered forms, but those are Markdown bullet lists, and the mapping
+    # iterates both as Python lists.
+    DRADIS_TEXT_SUBSECTIONS = ("title", "description", "recommendations", "details")
+
+    # Build the per-issue contexts the Dradis mapping expressions are evaluated
+    # against. Each one combines the raw issue (which owns the list-valued
+    # fields) with its rendered subsections (which own the prose). The two live
+    # in different places: issues are keyed by vulnid in sections["issues"],
+    # notes by their issuelist index in sections["notes"].
+    #
+    # An issue with no rendered counterpart was dropped from the Markdown report
+    # by min_severity, so we drop it here too instead of exporting an empty one.
+    def _dradis_issue_contexts(self, report):
+        sections = report.get("sections", {})
+        by_vulnid = sections.get("issues", {})
+        by_index = sections.get("notes", {})
+        subsections_order = report["metadata"].get("issue_subsections_order", [])
+        tpl_body = self.env.get_template("main/issue_body")
+        contexts = []
+        for index, issue in enumerate(report["issues"]):
+            vulnid = issue.get("vulnid")
+            if vulnid:
+                rendered = by_vulnid.get(vulnid)
+            else:
+                rendered = by_index.get(index)
+            if not rendered:
+                continue
+            context = dict(issue)
+            for name in self.DRADIS_TEXT_SUBSECTIONS:
+                if rendered.get(name):
+                    context[name] = rendered[name]
+            context["references"] = self._merged_references(issue)
+            # The raw severity key stays in the context untouched; the localized
+            # label ("High", "Alta") is only available in rendered form.
+            context["severity_label"] = rendered.get("severity", "")
+            # `body` is the whole issue assembled exactly as the Markdown report
+            # assembles it, headings included, so a mapping can drop it into one
+            # field instead of naming every subsection. Notes omit severity here
+            # for the same reason render_report does.
+            in_order = [
+                (name, rendered[name])
+                for name in subsections_order
+                if rendered.get(name) and (vulnid or name != "severity")
+            ]
+            context["body"] = tpl_body.render(issue, rendered=in_order).strip()
+            contexts.append(context)
+        return contexts
